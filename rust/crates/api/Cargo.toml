@@ -1,0 +1,20 @@
+[package]
+name = "cloudshuttle-api"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "API utilities and response formatting for CloudShuttle services"
+keywords = ["api", "http", "response", "pagination"]
+categories = ["web-programming", "api-bindings"]
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+axum = { version = "0.7", features = ["json"] }
+http.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+thiserror.workspace = true

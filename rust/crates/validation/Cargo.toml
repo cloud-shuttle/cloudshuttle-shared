@@ -1,0 +1,19 @@
+[package]
+name = "cloudshuttle-validation"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Input validation and sanitization for CloudShuttle services"
+keywords = ["validation", "sanitization", "input", "security"]
+categories = ["encoding", "api-bindings"]
+
+[dependencies]
+serde.workspace = true
+regex.workspace = true
+validator = { version = "0.18", features = ["derive"] }
+thiserror.workspace = true
+once_cell.workspace = true
+unicode-normalization = "0.1"

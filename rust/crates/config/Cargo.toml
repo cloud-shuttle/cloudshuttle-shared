@@ -1,0 +1,25 @@
+[package]
+name = "cloudshuttle-config"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Configuration management for CloudShuttle services"
+keywords = ["config", "configuration", "environment", "settings"]
+categories = ["config"]
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+config = "0.14"
+dotenvy = "0.15"
+validator = { version = "0.18", features = ["derive"] }
+thiserror.workspace = true
+tracing.workspace = true
+secrecy = "0.8"
+futures = "0.3"
+notify = "6.0"
+tokio-stream = { version = "0.1", features = ["sync"] }

@@ -1,13 +1,13 @@
 [workspace]
 members = [
-    "rust/error-handling",
-    "rust/database",
-    "rust/auth",
-    "rust/observability",
-    "rust/config",
-    "rust/api",
-    "rust/validation",
-    "rust/crypto",
+    "rust/crates/error-handling",
+    "rust/crates/database",
+    "rust/crates/auth",
+    "rust/crates/observability",
+    "rust/crates/config",
+    "rust/crates/api",
+    "rust/crates/validation",
+    "rust/crates/crypto",
 ]
 
 [workspace.package]
