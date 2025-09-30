@@ -1,7 +1,6 @@
 //! Common authentication types
 
 use serde::{Deserialize, Serialize};
-use crate::AuthResult;
 
 /// Authentication result type
 pub type AuthResult<T> = Result<T, AuthError>;

@@ -232,9 +232,9 @@ impl TraceContext {
 
     /// Create from HTTP headers
     pub fn from_headers(headers: &HashMap<String, String>) -> Option<Self> {
-        let trace_id = headers.get("x-trace-id")?.clone().into();
-        let span_id = headers.get("x-span-id")?.clone().into();
-        let parent_span_id = headers.get("x-parent-span-id").cloned().map(|s| s.into());
+        let trace_id = TraceId(headers.get("x-trace-id")?.clone());
+        let span_id = SpanId(headers.get("x-span-id")?.clone());
+        let parent_span_id = headers.get("x-parent-span-id").cloned().map(SpanId);
 
         Some(Self {
             trace_id,

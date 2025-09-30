@@ -1,6 +1,6 @@
 //! Configuration loader with environment and file support
 
-use config::{Config as ConfigBuilder, ConfigError, Environment, File};
+use config::{Config as ConfigBuilder, ConfigError, Environment as ConfigEnvironment, File};
 use serde::de::DeserializeOwned;
 use std::collections::HashMap;
 use std::path::Path;
@@ -65,9 +65,9 @@ impl ConfigLoader {
 
         // Add environment variables
         if let Some(prefix) = &self.env_prefix {
-            builder = builder.add_source(Environment::with_prefix(prefix).separator("_"));
+            builder = builder.add_source(ConfigEnvironment::with_prefix(prefix).separator("_"));
         } else {
-            builder = builder.add_source(Environment::default());
+            builder = builder.add_source(ConfigEnvironment::default());
         }
 
         // Add overrides
@@ -105,9 +105,9 @@ impl ConfigLoader {
 
         // Add environment variables
         if let Some(prefix) = &self.env_prefix {
-            builder = builder.add_source(Environment::with_prefix(prefix).separator("_"));
+            builder = builder.add_source(ConfigEnvironment::with_prefix(prefix).separator("_"));
         } else {
-            builder = builder.add_source(Environment::default());
+            builder = builder.add_source(ConfigEnvironment::default());
         }
 
         // Add overrides
@@ -125,9 +125,9 @@ impl ConfigLoader {
 }
 
 /// Environment detection
-pub struct Environment;
+pub struct EnvironmentConfig;
 
-impl Environment {
+impl EnvironmentConfig {
     /// Get current environment (development, staging, production)
     pub fn current() -> String {
         std::env::var("ENVIRONMENT")

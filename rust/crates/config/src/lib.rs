@@ -38,4 +38,4 @@ pub mod hot_reload;
 // Re-export main types
 pub use loader::ConfigLoader;
 pub use secrets::Secret;
-pub use validator::ValidationError;
+pub use validator::ConfigValidationError as ValidationError;

@@ -1,7 +1,6 @@
 //! JWT token creation and validation
 
-use jsonwebtoken::{encode, decode, Header, EncodingKey, DecodingKey, Validation, Algorithm, errors::Error as JwtError};
-use serde::{Deserialize, Serialize};
+use jsonwebtoken::{encode, decode, Header, EncodingKey, DecodingKey, Validation, Algorithm};
 use std::time::{SystemTime, UNIX_EPOCH};
 use crate::{Claims, AuthResult, AuthError};
 
@@ -33,7 +32,7 @@ impl JwtService {
             Algorithm::ES256 | Algorithm::ES384 => {
                 EncodingKey::from_ec_pem(secret).map_err(|e| AuthError::InvalidKey(e.to_string()))?
             }
-            _ => return Err(AuthError::UnsupportedAlgorithm(algorithm.to_string())),
+            _ => return Err(AuthError::UnsupportedAlgorithm(format!("{:?}", algorithm))),
         };
 
         let decoding_key = match algorithm {
@@ -46,13 +45,12 @@ impl JwtService {
             Algorithm::ES256 | Algorithm::ES384 => {
                 DecodingKey::from_ec_pem(secret).map_err(|e| AuthError::InvalidKey(e.to_string()))?
             }
-            _ => return Err(AuthError::UnsupportedAlgorithm(algorithm.to_string())),
+            _ => return Err(AuthError::UnsupportedAlgorithm(format!("{:?}", algorithm))),
         };
 
         let mut validation = Validation::new(algorithm);
         validation.validate_exp = true;
-        validation.validate_nbf = true;
-        validation.validate_iat = true;
+        validation.validate_nbf = false; // Not using nbf claims
         validation.leeway = 30; // 30 seconds leeway for clock skew
 
         Ok(Self {
@@ -103,10 +101,10 @@ impl JwtService {
     pub fn create_access_token(&self, subject: &str, tenant_id: &str, roles: Vec<String>) -> AuthResult<String> {
         let mut claims = Claims::new(subject, tenant_id);
         claims.roles = roles;
-        claims.expiry = self.get_expiry_timestamp(self.default_expiry);
-        claims.issued_at = self.get_current_timestamp();
-        claims.issuer = Some(self.issuer.clone());
-        claims.audience = Some(self.audience.clone());
+        claims.exp = self.get_expiry_timestamp(self.default_expiry);
+        claims.iat = self.get_current_timestamp();
+        claims.iss = Some(self.issuer.clone());
+        claims.aud = Some(self.audience.clone());
 
         self.create_token(&claims)
     }
@@ -114,10 +112,10 @@ impl JwtService {
     /// Create refresh token with longer expiry
     pub fn create_refresh_token(&self, subject: &str, tenant_id: &str) -> AuthResult<String> {
         let mut claims = Claims::new(subject, tenant_id);
-        claims.expiry = self.get_expiry_timestamp(self.default_expiry * 24 * 7); // 7 days
-        claims.issued_at = self.get_current_timestamp();
-        claims.issuer = Some(self.issuer.clone());
-        claims.audience = Some(self.audience.clone());
+        claims.exp = self.get_expiry_timestamp(self.default_expiry * 24 * 7); // 7 days
+        claims.iat = self.get_current_timestamp();
+        claims.iss = Some(self.issuer.clone());
+        claims.aud = Some(self.audience.clone());
         claims.token_type = Some("refresh".to_string());
 
         self.create_token(&claims)
@@ -137,13 +135,13 @@ impl JwtService {
     /// Check if token is expired
     pub fn is_token_expired(&self, claims: &Claims) -> bool {
         let now = self.get_current_timestamp();
-        claims.expiry < now
+        claims.exp < now
     }
 
     /// Get remaining seconds until expiry
     pub fn get_seconds_until_expiry(&self, claims: &Claims) -> i64 {
         let now = self.get_current_timestamp() as i64;
-        claims.expiry as i64 - now
+        claims.exp as i64 - now
     }
 
     /// Validate token type
@@ -192,7 +190,7 @@ impl TokenValidation {
             }
             Self::ApiKey => {
                 validation.validate_exp = true;
-                validation.validate_iat = false;
+                // Note: validate_iat not available in current jsonwebtoken version
                 validation.validate_nbf = false;
             }
         }

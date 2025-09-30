@@ -4,7 +4,6 @@
 //! API responses with consistent metadata.
 
 use serde::{Deserialize, Serialize};
-use std::result::Result as StdResult;
 
 /// Pagination parameters from query string
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -56,12 +55,12 @@ impl PaginationParams {
     }
 
     /// Get validated page number
-    pub fn page(&self) -> u32 {
+    pub fn get_page(&self) -> u32 {
         self.page.unwrap_or(1).max(1)
     }
 
     /// Get validated items per page
-    pub fn per_page(&self) -> u32 {
+    pub fn get_per_page(&self) -> u32 {
         let per_page = self.per_page.unwrap_or(20);
         per_page.max(1).min(1000) // Max 1000 items per page
     }
@@ -78,12 +77,12 @@ impl PaginationParams {
 
     /// Calculate offset for database queries
     pub fn offset(&self) -> u64 {
-        ((self.page() - 1) * self.per_page()) as u64
+        ((self.get_page() - 1) * self.get_per_page()) as u64
     }
 
     /// Calculate limit for database queries
     pub fn limit(&self) -> u64 {
-        self.per_page() as u64
+        self.get_per_page() as u64
     }
 }
 
@@ -154,8 +153,8 @@ impl<T> PaginatedResponse<T> {
 
     /// Create from data and pagination parameters
     pub fn from_params(data: Vec<T>, params: &PaginationParams, total: u64) -> Self {
-        let page = params.page();
-        let per_page = params.per_page();
+        let page = params.get_page();
+        let per_page = params.get_per_page();
         let pagination = PaginationMeta::new(page, per_page, total);
         Self::new(data, pagination)
     }
@@ -294,8 +293,8 @@ mod tests {
             .per_page(10)
             .sort("name", "desc");
 
-        assert_eq!(params.page(), 2);
-        assert_eq!(params.per_page(), 10);
+        assert_eq!(params.get_page(), 2);
+        assert_eq!(params.get_per_page(), 10);
         assert_eq!(params.sort_by(), Some("name"));
         assert_eq!(params.sort_order(), "desc");
         assert_eq!(params.offset(), 10);

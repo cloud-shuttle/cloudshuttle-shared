@@ -34,8 +34,9 @@ pub mod middleware;
 
 // Re-export main functions and types
 pub use logging::{init_tracing, TracingConfig, LogFormat, Logger, LogLevel, LogSampler, PerformanceLogger};
-pub use metrics::{register_metrics, MetricsCollector, REQUEST_COUNT, REQUEST_DURATION};
+pub use metrics::{register_metrics, MetricsCollector, HTTP_REQUEST_COUNT as REQUEST_COUNT, HTTP_REQUEST_DURATION_SECONDS as REQUEST_DURATION};
 pub use tracing::{TraceId, SpanId, SpanBuilder, Span, TracingMiddleware, TraceContext};
+#[cfg(feature = "axum")]
 pub use health::{HealthChecker, HealthStatus, HealthResponse, HealthCheckerConfig};
 pub use middleware::{ObservabilityLayer, RequestContext, RequestMetrics};
 

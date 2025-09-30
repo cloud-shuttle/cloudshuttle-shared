@@ -10,7 +10,11 @@ pub enum CloudShuttleError {
     Config(String),
 
     #[error("Database error: {0}")]
-    Database(#[from] sqlx::Error),
+    Database(String),
+
+    #[cfg(feature = "database")]
+    #[error("SQLx database error: {0}")]
+    Sqlx(#[from] sqlx::Error),
 
     #[error("Authentication error: {0}")]
     Auth(String),
@@ -96,6 +100,7 @@ impl CloudShuttleError {
             Self::Io(_) => "File operation failed".to_string(),
             Self::Parse(_) => "Data parsing failed".to_string(),
             Self::Timeout(_) => "Operation timed out".to_string(),
+            Self::Sqlx(_) => "Database operation failed".to_string(),
         }
     }
 
@@ -117,6 +122,7 @@ impl CloudShuttleError {
             Self::Io(_) => http::StatusCode::INTERNAL_SERVER_ERROR,
             Self::Parse(_) => http::StatusCode::BAD_REQUEST,
             Self::Timeout(_) => http::StatusCode::GATEWAY_TIMEOUT,
+            Self::Sqlx(_) => http::StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 

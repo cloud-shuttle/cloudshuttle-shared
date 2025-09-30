@@ -1,5 +1,6 @@
 //! Authentication middleware for Axum
 
+#[cfg(feature = "middleware")]
 use axum::{
     extract::Request,
     http::{header, HeaderMap, StatusCode},
@@ -10,12 +11,14 @@ use std::sync::Arc;
 use crate::{JwtService, Claims, AuthResult, AuthError};
 
 /// Authentication middleware layer
+#[cfg(feature = "middleware")]
 pub struct AuthMiddleware {
     jwt_service: Arc<JwtService>,
     required_roles: Vec<String>,
     optional_auth: bool,
 }
 
+#[cfg(feature = "middleware")]
 impl AuthMiddleware {
     /// Create new middleware requiring authentication
     pub fn new(jwt_service: Arc<JwtService>) -> Self {
@@ -122,8 +125,10 @@ fn extract_token_from_header(headers: &HeaderMap) -> Option<String> {
 }
 
 /// Authentication extractor for handlers
+#[cfg(feature = "middleware")]
 pub struct AuthenticatedUser(pub Claims);
 
+#[cfg(feature = "middleware")]
 impl AuthenticatedUser {
     /// Get user ID
     pub fn user_id(&self) -> &str {
@@ -157,6 +162,7 @@ impl AuthenticatedUser {
 }
 
 #[async_trait::async_trait]
+#[cfg(feature = "middleware")]
 impl axum::extract::FromRequest for AuthenticatedUser {
     type Rejection = Response;
 
@@ -169,8 +175,10 @@ impl axum::extract::FromRequest for AuthenticatedUser {
 }
 
 /// Optional authentication extractor
+#[cfg(feature = "middleware")]
 pub struct OptionalUser(pub Option<Claims>);
 
+#[cfg(feature = "middleware")]
 #[async_trait::async_trait]
 impl axum::extract::FromRequest for OptionalUser {
     type Rejection = Response;

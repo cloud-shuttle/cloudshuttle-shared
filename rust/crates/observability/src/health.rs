@@ -34,6 +34,7 @@ pub struct HealthResponse {
 }
 
 /// Health checker for HTTP endpoints
+#[cfg(feature = "axum")]
 pub struct HealthChecker {
     client: reqwest::Client,
     config: HealthCheckerConfig,
@@ -69,6 +70,7 @@ impl Default for HealthCheckerConfig {
 /// Error type for health check operations
 #[derive(Debug, thiserror::Error)]
 pub enum HealthCheckError {
+    #[cfg(feature = "axum")]
     #[error("HTTP request failed: {0}")]
     HttpError(#[from] reqwest::Error),
 
@@ -86,6 +88,7 @@ pub enum HealthCheckError {
 pub type Result<T> = std::result::Result<T, HealthCheckError>;
 
 /// HTTP health check response
+#[cfg(feature = "axum")]
 #[derive(Debug, Clone)]
 pub struct HealthCheckResponse {
     /// HTTP status code
@@ -96,6 +99,7 @@ pub struct HealthCheckResponse {
     pub response_time: Duration,
 }
 
+#[cfg(feature = "axum")]
 impl HealthChecker {
     /// Create a new health checker with default configuration
     pub fn new() -> Self {

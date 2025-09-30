@@ -143,7 +143,7 @@ impl ApiError {
         let mut response = ApiErrorResponse::new(
             self.to_string(),
             self.user_message(),
-            self.error_code(),
+            self.error_code().to_string(),
             status_code,
         );
 

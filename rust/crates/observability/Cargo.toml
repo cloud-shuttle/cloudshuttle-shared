@@ -20,17 +20,19 @@ prometheus = "0.13"
 once_cell.workspace = true
 async-trait.workspace = true
 hyper = { version = "1.0", features = ["http1", "server"] }
-http.workspace = true
+http = "1.0"
 uuid.workspace = true
 chrono.workspace = true
 thiserror.workspace = true
 hex = "0.4"
 rand.workspace = true
 reqwest = { workspace = true, optional = true }
+sys-info = { workspace = true, optional = true }
 
 [features]
 default = []
 axum = ["dep:axum", "dep:reqwest"]
+sys-info = ["dep:sys-info"]
 
 [dependencies.axum]
 version = "0.7"

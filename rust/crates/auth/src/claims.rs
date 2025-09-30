@@ -295,7 +295,7 @@ impl ClaimsBuilder {
         value: T,
     ) -> serde_json::Result<Self> {
         self.claims = self.claims.with_custom_claim(key, value)?;
-        self
+        Ok(self)
     }
 
     pub fn build(self) -> Claims {

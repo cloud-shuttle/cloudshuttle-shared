@@ -4,6 +4,7 @@
 //! and reload them automatically when they change.
 
 use futures::StreamExt;
+use notify::Watcher;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::result::Result as StdResult;

@@ -3,7 +3,6 @@
 //! This module provides validation functions for configuration values,
 //! ensuring they meet requirements before being used.
 
-use std::collections::HashMap;
 use std::result::Result as StdResult;
 
 /// Error type for configuration validation

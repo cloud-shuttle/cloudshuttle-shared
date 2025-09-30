@@ -284,6 +284,7 @@ impl PerformanceMetrics {
         tracing::debug!("Operation {} took {}ms", operation, duration_ms);
     }
 
+    #[cfg(feature = "sys-info")]
     pub fn record_memory_usage() {
         // Could record memory usage metrics
         if let Ok(usage) = sys_info::mem_info() {
@@ -291,6 +292,7 @@ impl PerformanceMetrics {
         }
     }
 
+    #[cfg(feature = "sys-info")]
     pub fn record_cpu_usage() {
         // Could record CPU usage metrics
         if let Ok(load) = sys_info::loadavg() {

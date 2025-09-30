@@ -1,6 +1,6 @@
 //! Key management for JWT tokens
 
-use ring::signature::{Ed25519KeyPair, KeyPair, RsaKeyPair, UnparsedPublicKey, ECDSA_P256_SHA256_FIXED_SIGNING};
+use ring::signature::{Ed25519KeyPair, KeyPair as RingKeyPair};
 use ring::rand::SystemRandom;
 use std::fs;
 use std::path::Path;
@@ -8,7 +8,7 @@ use crate::{AuthResult, AuthError};
 
 /// Key pair for asymmetric signing
 #[derive(Clone)]
-pub struct KeyPair {
+pub struct SigningKeyPair {
     private_key: Vec<u8>,
     public_key: Vec<u8>,
     algorithm: KeyAlgorithm,
@@ -22,7 +22,7 @@ pub enum KeyAlgorithm {
     ECDSA,
 }
 
-impl KeyPair {
+impl SigningKeyPair {
     /// Generate a new Ed25519 key pair
     pub fn generate_ed25519() -> AuthResult<Self> {
         let rng = SystemRandom::new();
@@ -108,15 +108,15 @@ impl KeyPair {
 
 /// Key manager for handling key rotation and multiple keys
 pub struct KeyManager {
-    current_key: KeyPair,
-    previous_keys: Vec<KeyPair>,
+    current_key: SigningKeyPair,
+    previous_keys: Vec<SigningKeyPair>,
     key_rotation_enabled: bool,
     rotation_interval_days: u32,
 }
 
 impl KeyManager {
     /// Create a new key manager with a single key
-    pub fn new(key: KeyPair) -> Self {
+    pub fn new(key: SigningKeyPair) -> Self {
         Self {
             current_key: key,
             previous_keys: Vec::new(),
@@ -133,19 +133,19 @@ impl KeyManager {
     }
 
     /// Get the current signing key
-    pub fn current_key(&self) -> &KeyPair {
+    pub fn current_key(&self) -> &SigningKeyPair {
         &self.current_key
     }
 
     /// Get all valid keys (current + previous for validation)
-    pub fn all_keys(&self) -> Vec<&KeyPair> {
+    pub fn all_keys(&self) -> Vec<&SigningKeyPair> {
         let mut keys = vec![&self.current_key];
         keys.extend(self.previous_keys.iter());
         keys
     }
 
     /// Rotate to a new key
-    pub fn rotate_key(&mut self, new_key: KeyPair) -> AuthResult<()> {
+    pub fn rotate_key(&mut self, new_key: SigningKeyPair) -> AuthResult<()> {
         self.previous_keys.push(self.current_key.clone());
         self.current_key = new_key;
 
@@ -173,7 +173,7 @@ impl KeyManager {
     }
 
     /// Get key by ID or index
-    pub fn get_key(&self, index: usize) -> Option<&KeyPair> {
+    pub fn get_key(&self, index: usize) -> Option<&SigningKeyPair> {
         if index == 0 {
             Some(&self.current_key)
         } else {
@@ -207,22 +207,22 @@ impl KeyStore {
     }
 
     /// Load the current key pair
-    pub fn load_current_key(&self) -> AuthResult<KeyPair> {
+    pub fn load_current_key(&self) -> AuthResult<SigningKeyPair> {
         let private_key_path = self.keys_dir.join(format!("{}_private.pem", self.current_key_id));
         let public_key_path = self.keys_dir.join(format!("{}_public.pem", self.current_key_id));
 
         if private_key_path.exists() && public_key_path.exists() {
-            KeyPair::from_pem(&private_key_path, &public_key_path)
+            SigningKeyPair::from_pem(&private_key_path, &public_key_path)
         } else {
             // Generate new keys if they don't exist
-            let key_pair = KeyPair::generate_ed25519()?;
+            let key_pair = SigningKeyPair::generate_ed25519()?;
             key_pair.save_to_pem(&private_key_path, &public_key_path)?;
             Ok(key_pair)
         }
     }
 
     /// Save a key pair with a specific ID
-    pub fn save_key(&self, key: &KeyPair, key_id: &str) -> AuthResult<()> {
+    pub fn save_key(&self, key: &SigningKeyPair, key_id: &str) -> AuthResult<()> {
         let private_key_path = self.keys_dir.join(format!("{}_private.pem", key_id));
         let public_key_path = self.keys_dir.join(format!("{}_public.pem", key_id));
 

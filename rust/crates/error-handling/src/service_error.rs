@@ -1,7 +1,6 @@
 //! Service-specific error handling traits
 
 use async_trait::async_trait;
-use std::fmt;
 
 /// Trait for service-specific errors
 #[async_trait]
@@ -98,7 +97,7 @@ impl ErrorMetrics {
         }
     }
 
-    pub fn record_error<E: ServiceError>(&self, error: &E) {
+    pub fn record_error<E: ServiceError>(&mut self, error: &E) {
         self.total_errors.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
 
         let category = error.category().to_string();

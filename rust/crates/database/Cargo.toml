@@ -21,3 +21,4 @@ chrono.workspace = true
 anyhow.workspace = true
 async-trait.workspace = true
 thiserror.workspace = true
+cloudshuttle-error-handling = { path = "../error-handling", features = ["database"] }

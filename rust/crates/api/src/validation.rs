@@ -3,7 +3,6 @@
 //! This module provides validation utilities for API requests,
 //! including input sanitization and validation rules.
 
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::result::Result as StdResult;
 

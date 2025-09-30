@@ -28,6 +28,7 @@
 
 pub mod jwt;
 pub mod claims;
+#[cfg(feature = "middleware")]
 pub mod middleware;
 pub mod keys;
 pub mod types;
@@ -36,7 +37,8 @@ pub mod refresh;
 // Re-export main types
 pub use jwt::JwtService;
 pub use claims::Claims;
+#[cfg(feature = "middleware")]
 pub use middleware::AuthMiddleware;
-pub use keys::{KeyManager, KeyPair};
+pub use keys::{KeyManager, SigningKeyPair as KeyPair};
 pub use types::*;
 pub use refresh::TokenRefresh;

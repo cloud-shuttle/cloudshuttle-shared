@@ -5,6 +5,39 @@ use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberI
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
+/// Log an operation start
+#[macro_export]
+macro_rules! log_operation_start {
+    ($operation:expr) => {
+        info!(operation = $operation, "Starting operation");
+    };
+    ($operation:expr, $($field:tt)*) => {
+        info!(operation = $operation, $($field)*, "Starting operation");
+    };
+}
+
+/// Log an operation completion
+#[macro_export]
+macro_rules! log_operation_complete {
+    ($operation:expr) => {
+        info!(operation = $operation, "Operation completed");
+    };
+    ($operation:expr, $($field:tt)*) => {
+        info!(operation = $operation, $($field)*, "Operation completed");
+    };
+}
+
+/// Log performance metrics
+#[macro_export]
+macro_rules! log_performance {
+    ($operation:expr, $duration_ms:expr) => {
+        info!(operation = $operation, duration_ms = $duration_ms, "Operation performance");
+    };
+    ($operation:expr, $duration_ms:expr, $($field:tt)*) => {
+        info!(operation = $operation, duration_ms = $duration_ms, $($field)*, "Operation performance");
+    };
+}
+
 /// Tracing configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TracingConfig {
@@ -74,21 +107,17 @@ pub fn init_tracing_with_config(config: TracingConfig) -> Result<(), Box<dyn std
         });
 
     // Create formatter based on configuration
-    let formatter = fmt::layer()
-        .with_target(false)
-        .with_thread_ids(false)
-        .with_thread_names(false);
-
-    let formatter = match config.format {
-        LogFormat::Compact => formatter.compact(),
-        LogFormat::Pretty => formatter.pretty(),
-        LogFormat::Json => formatter.json(),
+    let subscriber = match config.format {
+        LogFormat::Compact => tracing_subscriber::registry()
+            .with(filter)
+            .with(fmt::layer().with_target(false).with_thread_ids(false).with_thread_names(false).compact()),
+        LogFormat::Pretty => tracing_subscriber::registry()
+            .with(filter)
+            .with(fmt::layer().with_target(false).with_thread_ids(false).with_thread_names(false).pretty()),
+        LogFormat::Json => tracing_subscriber::registry()
+            .with(filter)
+            .with(fmt::layer().with_target(false).with_thread_ids(false).with_thread_names(false).json()),
     };
-
-    // Build subscriber
-    let subscriber = tracing_subscriber::registry()
-        .with(filter)
-        .with(formatter);
 
     // Initialize the subscriber
     subscriber.init();
@@ -108,67 +137,6 @@ pub fn current_level() -> Option<Level> {
     // This is a simplified implementation
     // In a real implementation, you'd get this from the current subscriber
     Some(Level::INFO)
-}
-
-/// Structured logging macros and utilities
-pub mod structured {
-    use tracing::{info, warn, error, debug, trace};
-    use serde::Serialize;
-
-    /// Log an operation start
-    #[macro_export]
-    macro_rules! log_operation_start {
-        ($operation:expr) => {
-            info!(operation = $operation, "Starting operation");
-        };
-        ($operation:expr, $($field:tt)*) => {
-            info!(operation = $operation, $($field)*, "Starting operation");
-        };
-    }
-
-    /// Log an operation completion
-    #[macro_export]
-    macro_rules! log_operation_complete {
-        ($operation:expr) => {
-            info!(operation = $operation, "Operation completed");
-        };
-        ($operation:expr, $($field:tt)*) => {
-            info!(operation = $operation, $($field)*, "Operation completed");
-        };
-    }
-
-    /// Log an operation error
-    #[macro_export]
-    macro_rules! log_operation_error {
-        ($operation:expr, $error:expr) => {
-            error!(operation = $operation, error = %$error, "Operation failed");
-        };
-        ($operation:expr, $error:expr, $($field:tt)*) => {
-            error!(operation = $operation, error = %$error, $($field)*, "Operation failed");
-        };
-    }
-
-    /// Log a security event
-    #[macro_export]
-    macro_rules! log_security_event {
-        ($event:expr, $user:expr) => {
-            warn!(event = $event, user = $user, "Security event");
-        };
-        ($event:expr, $user:expr, $($field:tt)*) => {
-            warn!(event = $event, user = $user, $($field)*, "Security event");
-        };
-    }
-
-    /// Log a performance metric
-    #[macro_export]
-    macro_rules! log_performance {
-        ($operation:expr, $duration_ms:expr) => {
-            info!(operation = $operation, duration_ms = $duration_ms, "Performance metric");
-        };
-        ($operation:expr, $duration_ms:expr, $($field:tt)*) => {
-            info!(operation = $operation, duration_ms = $duration_ms, $($field)*, "Performance metric");
-        };
-    }
 }
 
 /// Context-aware logging

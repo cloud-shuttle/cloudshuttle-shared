@@ -6,7 +6,6 @@ use axum::{
     Json,
     http::StatusCode,
 };
-use uuid::Uuid;
 
 /// Generic API response wrapper
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -173,7 +172,7 @@ impl<T> EnhancedResponse<T> {
 
     pub fn error(message: impl Into<String>, meta: ResponseMeta) -> EnhancedResponse<()> {
         EnhancedResponse::<()> {
-            response: ApiResponse::error(message),
+            response: ApiResponse::<()>::error(message),
             meta,
         }
     }
@@ -205,7 +204,7 @@ impl<T> ResponseBuilder<T> {
 
     pub fn error(message: impl Into<String>) -> ResponseBuilder<()> {
         ResponseBuilder::<()> {
-            response: ApiResponse::error(message),
+            response: ApiResponse::<()>::error(message),
         }
     }
 
