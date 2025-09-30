@@ -1,0 +1,57 @@
+[workspace]
+members = [
+    "rust/error-handling",
+    "rust/database",
+    "rust/auth",
+    "rust/observability",
+    "rust/config",
+    "rust/api",
+    "rust/validation",
+    "rust/crypto",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/cloudshuttle/cloudshuttle-shared"
+documentation = "https://docs.rs/cloudshuttle-shared"
+
+[workspace.dependencies]
+# Common dependencies shared across workspace
+async-trait = "0.1"
+thiserror = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.0", features = ["full"] }
+uuid = { version = "1.0", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+validator = { version = "0.16", features = ["derive"] }
+http = "0.2"
+
+# Database
+sqlx = { version = "0.7", features = ["postgres", "runtime-tokio-rustls", "chrono", "uuid", "json"] }
+
+# Authentication
+jsonwebtoken = "9.0"
+bcrypt = "0.15"
+rand = "0.8"
+
+# Observability
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] }
+prometheus = "0.13"
+lazy_static = "1.4"
+
+[profile.release]
+opt-level = 3
+debug = false
+strip = true
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.dev]
+opt-level = 0
+debug = 2
+overflow-checks = true

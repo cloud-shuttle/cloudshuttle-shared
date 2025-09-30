@@ -1,0 +1,22 @@
+[package]
+name = "cloudshuttle-database"
+version = "0.1.0"
+edition = "2021"
+description = "Database utilities and connection management for CloudShuttle services"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/cloudshuttle/cloudshuttle-shared"
+documentation = "https://docs.rs/cloudshuttle-database"
+readme = "README.md"
+
+[dependencies]
+cloudshuttle-error-handling = { path = "../error-handling", version = "0.1.0" }
+sqlx = { version = "0.7", features = ["postgres", "runtime-tokio-rustls", "chrono", "uuid", "json"] }
+async-trait = "0.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+uuid = { version = "1.0", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+tokio = { version = "1.0", features = ["time"] }
+
+[dev-dependencies]
+tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }

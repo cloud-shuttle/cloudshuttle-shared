@@ -1,0 +1,47 @@
+{
+  "name": "@cloudshuttle/shared",
+  "version": "0.1.0",
+  "description": "CloudShuttle TypeScript shared libraries",
+  "private": true,
+  "workspaces": [
+    "components",
+    "hooks",
+    "types",
+    "utils",
+    "api",
+    "stores"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "type-check": "npm run type-check --workspaces",
+    "clean": "npm run clean --workspaces"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^2.0.0",
+    "typescript": "^5.0.0",
+    "jest": "^29.0.0",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/jest-dom": "^5.0.0",
+    "lerna": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cloudshuttle/cloudshuttle-shared.git",
+    "directory": "typescript"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cloudshuttle/cloudshuttle-shared/issues"
+  },
+  "homepage": "https://github.com/cloudshuttle/cloudshuttle-shared#readme"
+}

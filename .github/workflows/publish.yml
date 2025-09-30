@@ -1,0 +1,145 @@
+name: Publish
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+jobs:
+  publish-rust:
+    name: Publish Rust Libraries
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        crate: [error-handling, database, auth, observability, config, api, validation, crypto]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+
+    - name: Login to crates.io
+      run: cargo login ${{ secrets.CRATES_IO_TOKEN }}
+
+    - name: Publish ${{ matrix.crate }}
+      run: |
+        cd rust/${{ matrix.crate }}
+        cargo publish --allow-dirty
+      env:
+        CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+
+  publish-typescript:
+    name: Publish TypeScript Libraries
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+        registry-url: 'https://registry.npmjs.org'
+
+    - name: Install dependencies
+      run: |
+        cd typescript
+        npm ci
+
+    - name: Build libraries
+      run: |
+        cd typescript
+        npm run build
+
+    - name: Publish components
+      run: |
+        cd typescript/components
+        npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    - name: Publish hooks
+      run: |
+        cd typescript/hooks
+        npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    - name: Publish types
+      run: |
+        cd typescript/types
+        npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    - name: Publish utils
+      run: |
+        cd typescript/utils
+        npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    - name: Publish api
+      run: |
+        cd typescript/api
+        npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    - name: Publish stores
+      run: |
+        cd typescript/stores
+        npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [publish-rust, publish-typescript]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Generate changelog
+      run: |
+        # Extract version from tag
+        VERSION=${GITHUB_REF#refs/tags/v}
+
+        # Generate changelog entry
+        echo "## [${VERSION}] - $(date +%Y-%m-%d)" >> release_notes.md
+        echo "" >> release_notes.md
+
+        # Add changes since last tag
+        git log --pretty=format:"%s" $(git describe --tags --abbrev=0 HEAD^)..HEAD >> release_notes.md
+
+    - name: Create GitHub release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body_path: release_notes.md
+        draft: false
+        prerelease: false
+
+  notify:
+    name: Notify Release
+    runs-on: ubuntu-latest
+    needs: [create-release]
+    if: always()
+
+    steps:
+    - name: Notify on success
+      if: needs.create-release.result == 'success'
+      run: |
+        echo "Release completed successfully!"
+
+    - name: Notify on failure
+      if: needs.create-release.result == 'failure'
+      run: |
+        echo "Release failed!"
+        # Could send notification to Slack, Discord, etc.
