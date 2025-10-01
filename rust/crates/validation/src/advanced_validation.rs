@@ -573,11 +573,15 @@ impl Sanitizer for FilenameSanitizer {
     fn sanitize(&self, value: &str) -> String {
         // Remove dangerous characters for filenames
         let dangerous_chars = ['/', '\\', ':', '*', '?', '"', '<', '>', '|'];
-        value.chars()
+
+        let mut result = value.chars()
             .filter(|c| !dangerous_chars.contains(c))
-            .collect::<String>()
-            .trim()
-            .to_string()
+            .collect::<String>();
+
+        // Remove directory traversal sequences
+        result = result.replace("..", "");
+
+        result.trim().to_string()
     }
 
     fn clone_box(&self) -> Box<dyn Sanitizer> {
