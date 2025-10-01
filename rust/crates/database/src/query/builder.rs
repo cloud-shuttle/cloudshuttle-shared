@@ -147,7 +147,7 @@ impl QueryBuilder {
         // Apply filters
         for filter in criteria.filters {
             match filter.operator {
-                crate::models::FilterOperator::Equal => {
+                crate::types::models::FilterOperator::Equal => {
                     self = self.where_eq(filter.field, filter.value);
                 }
                 // Add other operators as needed
@@ -163,7 +163,7 @@ impl QueryBuilder {
         // Apply sorting
         for sort in criteria.sorting {
             let direction = match sort.direction {
-                crate::models::SortDirection::Descending => Some("DESC"),
+                crate::types::models::SortDirection::Descending => Some("DESC"),
                 _ => None,
             };
             self = self.order_by(sort.field, direction);

@@ -4,7 +4,7 @@ use ring::signature::{Ed25519KeyPair, KeyPair as RingKeyPair};
 use ring::rand::SystemRandom;
 use std::fs;
 use std::path::Path;
-use crate::{AuthResult, AuthError};
+use crate::types::{AuthResult, AuthError};
 
 /// Key pair for asymmetric signing
 #[derive(Clone)]

@@ -45,6 +45,24 @@ pub enum FilterOperator {
     IsNotNull,
 }
 
+impl std::fmt::Display for FilterOperator {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FilterOperator::Equal => write!(f, "="),
+            FilterOperator::NotEqual => write!(f, "!="),
+            FilterOperator::GreaterThan => write!(f, ">"),
+            FilterOperator::LessThan => write!(f, "<"),
+            FilterOperator::GreaterThanOrEqual => write!(f, ">="),
+            FilterOperator::LessThanOrEqual => write!(f, "<="),
+            FilterOperator::Like => write!(f, "LIKE"),
+            FilterOperator::In => write!(f, "IN"),
+            FilterOperator::NotIn => write!(f, "NOT IN"),
+            FilterOperator::IsNull => write!(f, "IS NULL"),
+            FilterOperator::IsNotNull => write!(f, "IS NOT NULL"),
+        }
+    }
+}
+
 /// Sort order for query criteria
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SortOrder {

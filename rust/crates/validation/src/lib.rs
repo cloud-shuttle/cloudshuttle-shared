@@ -24,7 +24,15 @@
 
 pub mod rules;
 pub mod sanitization;
+pub mod advanced_validation;
 
 // Re-export main functions
 pub use rules::{validate_email, validate_password_strength, validate_username};
 pub use sanitization::{sanitize_html, sanitize_sql_input, sanitize_filename};
+
+// Re-export advanced validation types
+pub use advanced_validation::{
+    AdvancedValidator, ValidationContext, AdvancedValidationResult, ValidationSeverity,
+    ValidationRule, ValidationErrorDetail, ValidationWarning, ValidationConfig,
+    Sanitizer, HtmlSanitizer, SqlSanitizer, FilenameSanitizer
+};

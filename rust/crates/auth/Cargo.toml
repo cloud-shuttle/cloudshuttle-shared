@@ -19,17 +19,25 @@ thiserror.workspace = true
 chrono.workspace = true
 uuid.workspace = true
 async-trait.workspace = true
-jsonwebtoken = "9.0"
+jsonwebtoken = "9.3"
 base64.workspace = true
 ring = "0.17"
 argon2 = { version = "0.5", features = ["std"] }
 axum = { workspace = true, optional = true }
+http.workspace = true
+hex.workspace = true
+cloudshuttle-observability = { path = "../observability", optional = true }
 
 [dev-dependencies]
 pact_consumer = "0.10"
 criterion = { version = "0.5", features = ["html_reports"] }
 futures = "0.3"
+tokio = { version = "1.45", features = ["full"] }
 
 [features]
 default = []
 middleware = ["axum"]
+token-introspection = []
+pkce = []
+refresh-tokens = []
+observability = ["cloudshuttle-observability"]

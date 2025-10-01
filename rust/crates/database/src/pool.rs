@@ -1,5 +1,7 @@
 //! Connection pool management
 
+pub mod advanced_pool;
+
 use sqlx::{PgPool, postgres::PgPoolOptions, Row};
 use std::time::Duration;
 use cloudshuttle_error_handling::database_error::DatabaseResult;

@@ -23,6 +23,18 @@ pub enum AuthError {
     #[error("Token expired")]
     TokenExpired,
 
+    #[error("Invalid token: {0}")]
+    InvalidToken(String),
+
+    #[error("Token revoked")]
+    TokenRevoked,
+
+    #[error("Invalid request: {0}")]
+    InvalidRequest(String),
+
+    #[error("Internal error: {0}")]
+    InternalError(String),
+
     #[error("Invalid token type: expected {expected}, got {actual}")]
     InvalidTokenType { expected: String, actual: String },
 
@@ -52,6 +64,9 @@ pub enum AuthError {
 
     #[error("Refresh token expired")]
     RefreshTokenExpired,
+
+    #[error("Token not found")]
+    TokenNotFound,
 
     #[error("User not found: {0}")]
     UserNotFound(String),
@@ -91,12 +106,15 @@ impl AuthError {
     /// Convert error to HTTP status code
     pub fn to_http_status(&self) -> http::StatusCode {
         match self {
-            AuthError::TokenExpired | AuthError::RefreshTokenExpired | AuthError::SessionExpired => {
+            AuthError::TokenExpired | AuthError::RefreshTokenExpired | AuthError::SessionExpired
+            | AuthError::TokenRevoked => {
                 http::StatusCode::UNAUTHORIZED
             }
             AuthError::InvalidCredentials
             | AuthError::InvalidRefreshToken
             | AuthError::InvalidMfaCode
+            | AuthError::InvalidToken(_)
+            | AuthError::InvalidRequest(_)
             | AuthError::PasswordTooWeak => {
                 http::StatusCode::BAD_REQUEST
             }
@@ -118,6 +136,10 @@ impl AuthError {
         match self {
             AuthError::TokenExpired => "TOKEN_EXPIRED",
             AuthError::InvalidCredentials => "INVALID_CREDENTIALS",
+            AuthError::InvalidToken(_) => "INVALID_TOKEN",
+            AuthError::TokenRevoked => "TOKEN_REVOKED",
+            AuthError::InvalidRequest(_) => "INVALID_REQUEST",
+            AuthError::InternalError(_) => "INTERNAL_ERROR",
             AuthError::InvalidRefreshToken => "INVALID_REFRESH_TOKEN",
             AuthError::RefreshTokenExpired => "REFRESH_TOKEN_EXPIRED",
             AuthError::SessionExpired => "SESSION_EXPIRED",
@@ -146,6 +168,7 @@ impl AuthError {
             AuthError::ServiceUnavailable
                 | AuthError::DatabaseError(_)
                 | AuthError::ExternalServiceError(_)
+                | AuthError::InternalError(_)
                 | AuthError::RateLimitExceeded
         )
     }

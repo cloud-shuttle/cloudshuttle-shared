@@ -31,11 +31,13 @@ pub mod metrics;
 pub mod tracing;
 pub mod health;
 pub mod middleware;
+pub mod audit;
 
 // Re-export main functions and types
 pub use logging::{init_tracing, TracingConfig, LogFormat, Logger, LogLevel, LogSampler, PerformanceLogger};
 pub use metrics::{register_metrics, MetricsCollector, HTTP_REQUEST_COUNT as REQUEST_COUNT, HTTP_REQUEST_DURATION_SECONDS as REQUEST_DURATION};
 pub use tracing::{TraceId, SpanId, SpanBuilder, Span, TracingMiddleware, TraceContext};
+pub use audit::{AuditLogger, AuditEvent, AuditEventType, AuditResult, audit, audit_auth, audit_authz, audit_data_access};
 #[cfg(feature = "axum")]
 pub use health::{HealthChecker, HealthStatus, HealthResponse, HealthCheckerConfig};
 pub use middleware::{ObservabilityLayer, RequestContext, RequestMetrics};

@@ -1,6 +1,7 @@
 //! Token refresh functionality
 
-use crate::{JwtService, Claims, AuthResult, AuthError, AuthTokens};
+use crate::{JwtService, Claims};
+use crate::types::{AuthResult, AuthError, AuthTokens};
 use std::sync::Arc;
 
 /// Token refresh service

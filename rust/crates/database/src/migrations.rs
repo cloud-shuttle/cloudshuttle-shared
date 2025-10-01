@@ -1,5 +1,7 @@
 //! Database migration utilities
 
+pub mod advanced_migrations;
+
 use std::path::Path;
 use cloudshuttle_error_handling::database_error::DatabaseResult;
 

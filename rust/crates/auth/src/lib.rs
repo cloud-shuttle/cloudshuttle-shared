@@ -34,6 +34,12 @@ pub mod keys;
 pub mod types;
 pub mod refresh;
 pub mod security;
+#[cfg(feature = "token-introspection")]
+pub mod introspection;
+#[cfg(feature = "pkce")]
+pub mod pkce;
+#[cfg(feature = "refresh-tokens")]
+pub mod refresh_tokens;
 
 // Re-export main types
 pub use jwt::JwtService;
@@ -44,3 +50,9 @@ pub use keys::{KeyManager, SigningKeyPair as KeyPair};
 pub use types::*;
 pub use refresh::TokenRefresh;
 pub use security::SecurityValidator;
+#[cfg(feature = "token-introspection")]
+pub use introspection::{TokenIntrospection, TokenIntrospectable, IntrospectionRequest, IntrospectionResponse};
+#[cfg(feature = "pkce")]
+pub use pkce::{PkceHandler, PkcePair, PkceMethod, PkceAuthorizationRequest, PkceTokenRequest};
+#[cfg(feature = "refresh-tokens")]
+pub use refresh_tokens::{RefreshTokenManager, RefreshTokenConfig, RefreshTokenRequest, RefreshTokenResponse, RefreshTokenRecord};

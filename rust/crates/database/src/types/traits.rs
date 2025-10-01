@@ -1,7 +1,7 @@
 //! Repository traits for database operations
 
 use async_trait::async_trait;
-use crate::DatabaseResult;
+use cloudshuttle_error_handling::database_error::DatabaseResult;
 use uuid::Uuid;
 
 /// Basic CRUD operations
@@ -16,7 +16,7 @@ pub trait Repository<T, ID = Uuid> {
 #[async_trait]
 pub trait QueryRepository<T> {
     async fn find_all(&self) -> DatabaseResult<Vec<T>>;
-    async fn find_by_criteria(&self, criteria: crate::models::QueryCriteria) -> DatabaseResult<Vec<T>>;
+    async fn find_by_criteria(&self, criteria: crate::types::models::QueryCriteria) -> DatabaseResult<Vec<T>>;
     async fn count(&self) -> DatabaseResult<i64>;
 }
 
@@ -94,7 +94,7 @@ pub enum AuditAction {
 pub trait ConnectionManager {
     async fn get_connection(&self) -> DatabaseResult<sqlx::PgConnection>;
     async fn get_pool(&self) -> DatabaseResult<&sqlx::PgPool>;
-    async fn health_check(&self) -> DatabaseResult<crate::models::DatabaseHealth>;
+    async fn health_check(&self) -> DatabaseResult<crate::types::models::DatabaseHealth>;
 }
 
 /// Migration management trait
@@ -102,7 +102,7 @@ pub trait ConnectionManager {
 pub trait MigrationManager {
     async fn run_migrations(&self) -> DatabaseResult<()>;
     async fn rollback_migration(&self, version: &str) -> DatabaseResult<()>;
-    async fn get_migration_status(&self) -> DatabaseResult<Vec<crate::models::MigrationRecord>>;
+    async fn get_migration_status(&self) -> DatabaseResult<Vec<crate::types::migrations::MigrationRecord>>;
 }
 
 #[cfg(test)]
