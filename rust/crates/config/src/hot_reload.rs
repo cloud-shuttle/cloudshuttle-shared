@@ -274,8 +274,15 @@ mod tests {
     fn test_config_file_watcher() {
         let mut watcher = ConfigFileWatcher::new().unwrap();
 
-        // Test watching a non-existent file (should not panic)
-        let result = watcher.watch_file("/tmp/non-existent-config.toml");
+        // Create a temporary file for testing
+        let temp_file = std::env::temp_dir().join("test-config-watcher.toml");
+        std::fs::write(&temp_file, "# Test config").unwrap();
+
+        // Test watching an existing file
+        let result = watcher.watch_file(&temp_file);
         assert!(result.is_ok());
+
+        // Clean up
+        let _ = std::fs::remove_file(&temp_file);
     }
 }

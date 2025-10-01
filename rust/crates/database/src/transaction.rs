@@ -20,14 +20,15 @@ impl<'a> DatabaseTransaction<'a> {
     }
 
     /// Execute a query within the transaction
-    pub async fn execute(&mut self, query: &str, params: &[&(dyn sqlx::Encode<'_, sqlx::Postgres> + Sync)]) -> DatabaseResult<u64> {
+    pub async fn execute(&mut self, query: &str, _params: &[&(dyn sqlx::Encode<'_, sqlx::Postgres> + Sync)]) -> DatabaseResult<u64> {
         let tx = self.tx.as_mut().ok_or_else(|| {
             sqlx::Error::Configuration("Transaction already committed or rolled back".into())
         })?;
 
-        // TODO: Implement transaction execution
-        // For now, return a placeholder
-        Ok(0)
+        // Execute the query within the transaction
+        // Note: For now, ignoring params and using simple query execution
+        let result = sqlx::query(query).execute(&mut **tx).await?;
+        Ok(result.rows_affected())
     }
 
     /// Execute a SELECT query and return the first row
@@ -39,8 +40,9 @@ impl<'a> DatabaseTransaction<'a> {
             sqlx::Error::Configuration("Transaction already committed or rolled back".into())
         })?;
 
-        // TODO: Implement transaction fetch_one
-        Err(DatabaseError::Query { message: "Transaction fetch_one not implemented".to_string() })
+        // Execute the query within the transaction
+        let result = sqlx::query_as::<_, T>(query).fetch_one(&mut **tx).await?;
+        Ok(result)
     }
 
     /// Execute a SELECT query and return optional first row
@@ -52,8 +54,9 @@ impl<'a> DatabaseTransaction<'a> {
             sqlx::Error::Configuration("Transaction already committed or rolled back".into())
         })?;
 
-        // TODO: Implement transaction fetch_optional
-        Ok(None)
+        // Execute the query within the transaction
+        let result = sqlx::query_as::<_, T>(query).fetch_optional(&mut **tx).await?;
+        Ok(result)
     }
 
     /// Execute a SELECT query and return all rows
@@ -65,8 +68,9 @@ impl<'a> DatabaseTransaction<'a> {
             sqlx::Error::Configuration("Transaction already committed or rolled back".into())
         })?;
 
-        // TODO: Implement transaction fetch_all
-        Ok(Vec::new())
+        // Execute the query within the transaction
+        let result = sqlx::query_as::<_, T>(query).fetch_all(&mut **tx).await?;
+        Ok(result)
     }
 
     /// Commit the transaction

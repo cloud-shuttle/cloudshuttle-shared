@@ -17,3 +17,7 @@ validator = { version = "0.18", features = ["derive"] }
 thiserror.workspace = true
 once_cell.workspace = true
 unicode-normalization = "0.1"
+
+[dev-dependencies]
+proptest = "1.0"
+criterion = { version = "0.5", features = ["html_reports"] }

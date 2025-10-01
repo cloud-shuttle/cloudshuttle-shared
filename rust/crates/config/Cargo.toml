@@ -23,3 +23,6 @@ secrecy = "0.8"
 futures = "0.3"
 notify = "6.0"
 tokio-stream = { version = "0.1", features = ["sync"] }
+
+[dev-dependencies]
+tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
