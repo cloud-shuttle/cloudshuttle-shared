@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tokio::sync::Semaphore;
-use sqlx::{PgPool, postgres::PgPoolOptions, PgConnection};
+use sqlx::{PgPool, postgres::PgPoolOptions};
 use cloudshuttle_error_handling::database_error::DatabaseResult;
 
 /// Connection pool metrics for monitoring and optimization
@@ -176,7 +176,7 @@ impl PoolState {
         } else {
             0.0
         };
-        health_score *= (1.0 - error_rate.min(0.5)); // Cap at 50% penalty
+        health_score *= 1.0 - error_rate.min(0.5); // Cap at 50% penalty
 
         // Penalize high timeout rates
         let timeout_rate = if self.metrics.total_connections > 0 {
@@ -184,7 +184,7 @@ impl PoolState {
         } else {
             0.0
         };
-        health_score *= (1.0 - timeout_rate.min(0.3)); // Cap at 30% penalty
+        health_score *= 1.0 - timeout_rate.min(0.3); // Cap at 30% penalty
 
         // Penalize low connection utilization
         let utilization = if self.metrics.total_connections > 0 {

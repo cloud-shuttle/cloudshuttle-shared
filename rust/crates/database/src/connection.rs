@@ -1,9 +1,9 @@
 //! Database connection management
 
-use sqlx::{PgPool, postgres::PgPoolOptions, Row};
+use sqlx::{PgPool, postgres::PgPoolOptions};
 use std::time::Duration;
 use cloudshuttle_error_handling::database_error::DatabaseResult;
-use crate::{ConnectionPool, PoolConfig, DatabaseTransaction};
+use crate::DatabaseTransaction;
 
 /// Database connection manager
 pub struct DatabaseConnection {

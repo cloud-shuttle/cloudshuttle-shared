@@ -1,8 +1,7 @@
 //! Database transaction management
 
-use sqlx::{PgConnection, Transaction, postgres::PgRow};
-use std::marker::PhantomData;
-use cloudshuttle_error_handling::database_error::{DatabaseResult, DatabaseError};
+use sqlx::{Transaction, postgres::PgRow};
+use cloudshuttle_error_handling::database_error::DatabaseResult;
 
 /// Database transaction wrapper with automatic rollback on drop
 pub struct DatabaseTransaction<'a> {

@@ -1,7 +1,7 @@
 //! Structured logging utilities
 
 use tracing::{info, warn, error, debug, Level};
-use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_subscriber::{EnvFilter, util::SubscriberInitExt};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 

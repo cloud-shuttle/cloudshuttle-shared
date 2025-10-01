@@ -1,6 +1,6 @@
 //! Metrics recording and value updates
 
-use prometheus::{Counter, Gauge, Histogram};
+use prometheus::{Gauge, Histogram};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 

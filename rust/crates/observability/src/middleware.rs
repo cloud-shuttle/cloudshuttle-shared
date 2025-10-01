@@ -4,7 +4,6 @@
 //! metrics collection, and logging.
 
 use std::time::Instant;
-use std::collections::HashMap;
 
 /// Observability middleware layer
 #[derive(Debug, Clone)]

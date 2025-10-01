@@ -98,7 +98,7 @@ impl MigrationRunner {
         let statements: Vec<&str> = sql.split(';').filter(|s| !s.trim().is_empty()).collect();
 
         // Execute each statement in a transaction
-        let mut tx = pool.begin().await?;
+        let tx = pool.begin().await?;
 
         for statement in statements {
             // TODO: Implement migration statement execution

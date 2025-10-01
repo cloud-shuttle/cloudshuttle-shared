@@ -14,7 +14,3 @@ pub use session::{UserSession, AuthContext, SessionStore, InMemorySessionStore};
 pub use policy::{PasswordPolicy, LoginAttempt, LockoutPolicy, MfaConfig, MfaMethod, SecurityEvent, SecurityEventType, SecuritySeverity};
 
 // Re-export all types for backward compatibility
-pub use errors::*;
-pub use credentials::*;
-pub use session::*;
-pub use policy::*;

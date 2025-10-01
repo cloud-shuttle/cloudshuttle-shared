@@ -11,8 +11,8 @@ pub struct CryptoUtils;
 impl CryptoUtils {
     /// Hash password using Argon2
     pub fn hash_password(password: &str) -> AuthResult<String> {
-        use argon2::{Argon2, PasswordHasher, PasswordVerifier};
-        use argon2::password_hash::{rand_core::OsRng, PasswordHash, SaltString};
+        use argon2::{Argon2, PasswordHasher};
+        use argon2::password_hash::{rand_core::OsRng, SaltString};
 
         let salt = SaltString::generate(&mut OsRng);
         let argon2 = Argon2::default();

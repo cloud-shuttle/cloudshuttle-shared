@@ -17,8 +17,6 @@ pub use batch::{BatchOperation, BatchResult, BatchBuilder, BatchOptions};
 pub use options::{QueryOptions, QueryExecutionContext, QueryMetrics, QueryHints};
 
 // Re-export all types for backward compatibility
-pub use builder::*;
-pub use results::*;
 pub use filters::*;
 pub use batch::*;
 pub use options::*;

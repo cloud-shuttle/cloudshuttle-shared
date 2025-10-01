@@ -1,6 +1,6 @@
 //! Query builder for dynamic SQL construction
 
-use crate::types::models::{QueryCriteria, Filter, SortOrder, Pagination};
+use crate::types::models::QueryCriteria;
 use serde_json;
 
 /// Query builder for dynamic SQL construction

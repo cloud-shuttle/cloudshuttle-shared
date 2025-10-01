@@ -1,7 +1,6 @@
 //! Domain models for database operations
 
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 /// Query criteria for filtering
 #[derive(Debug, Clone, Serialize, Deserialize)]

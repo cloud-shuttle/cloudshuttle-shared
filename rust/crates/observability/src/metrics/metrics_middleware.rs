@@ -1,7 +1,6 @@
 //! HTTP middleware for automatic metrics collection
 
 use std::time::Instant;
-use std::sync::{Arc, Mutex};
 
 /// HTTP metrics middleware for automatic request/response tracking
 pub struct MetricsMiddleware {

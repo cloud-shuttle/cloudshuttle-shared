@@ -7,8 +7,6 @@
 use std::collections::{HashMap, HashSet};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use validator::{Validate, ValidationError};
-use crate::rules::{Result as ValidationResult, ValidationError as ValError};
 
 /// Validation severity levels
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
