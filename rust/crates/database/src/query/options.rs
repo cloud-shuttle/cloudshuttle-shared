@@ -357,12 +357,12 @@ mod tests {
 
     #[test]
     fn test_query_execution_context() {
-        let options = QueryOptions::new().with_timeout(Duration::from_secs(5));
+        let options = QueryOptions::new().with_timeout(Duration::from_secs(5)).with_retry(3);
         let mut context = QueryExecutionContext::new(options);
 
         assert!(!context.is_timed_out());
         assert!(context.can_retry());
-        assert_eq!(context.remaining_retries(), 0);
+        assert_eq!(context.remaining_retries(), 3);
 
         context.increment_attempt();
         assert_eq!(context.attempt_count, 1);

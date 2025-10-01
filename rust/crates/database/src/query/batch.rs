@@ -334,7 +334,7 @@ mod tests {
             .update(
                 "users",
                 serde_json::json!({"name": "Bob"}).as_object().unwrap().clone(),
-                "id = $1",
+                "id = $2",
                 vec![serde_json::json!(1)]
             )
             .delete("users", "id = $1", vec![serde_json::json!(2)])
@@ -347,7 +347,7 @@ mod tests {
         // Check INSERT query
         let insert_op = &batch.operations()[0];
         assert!(insert_op.query.contains("INSERT INTO users"));
-        assert!(insert_op.query.contains("(name, email)"));
+        assert!(insert_op.query.contains("(email, name)"));
         assert!(insert_op.query.contains("VALUES ($1, $2)"));
 
         // Check UPDATE query

@@ -211,6 +211,7 @@ impl AlertManager {
 mod tests {
     use super::*;
     use std::collections::HashMap;
+    use std::sync::{Arc, Mutex};
 
     #[test]
     fn test_metrics_middleware_creation() {
