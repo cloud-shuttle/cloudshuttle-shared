@@ -1,8 +1,21 @@
 //! Benchmarks for sanitization functions
+//!
+//! This module provides comprehensive performance benchmarks for all sanitization functions.
+//! To run these benchmarks, use: `cargo bench --bench sanitization`
+//!
+//! The benchmarks cover:
+//! - HTML sanitization (basic and large content)
+//! - Filename sanitization (basic and complex)
+//! - SQL input sanitization
+//! - URL sanitization
+//! - Unicode normalization and trimming
+//!
+//! Note: These benchmarks use the Criterion.rs framework for accurate performance measurement.
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use cloudshuttle_validation::sanitization::*;
 
+/// Benchmark HTML sanitization with various inputs
 fn bench_sanitize_html(c: &mut Criterion) {
     let inputs = vec![
         "<script>alert('xss')</script>Hello World",
@@ -21,6 +34,7 @@ fn bench_sanitize_html(c: &mut Criterion) {
     });
 }
 
+/// Benchmark filename sanitization
 fn bench_sanitize_filename(c: &mut Criterion) {
     let inputs = vec![
         "../../../etc/passwd",
@@ -39,6 +53,7 @@ fn bench_sanitize_filename(c: &mut Criterion) {
     });
 }
 
+/// Benchmark SQL input sanitization with quote escaping
 fn bench_sanitize_sql_input(c: &mut Criterion) {
     let inputs = vec![
         "normal input",
@@ -51,12 +66,13 @@ fn bench_sanitize_sql_input(c: &mut Criterion) {
     c.bench_function("sanitize_sql_input", |b| {
         b.iter(|| {
             for input in &inputs {
-                black_box(sanitize_sql_input(input, true));
+                let _ = black_box(sanitize_sql_input(input, true));
             }
         })
     });
 }
 
+/// Benchmark whitespace trimming and normalization
 fn bench_trim_and_normalize(c: &mut Criterion) {
     let inputs = vec![
         "  hello   world  ",
@@ -75,6 +91,7 @@ fn bench_trim_and_normalize(c: &mut Criterion) {
     });
 }
 
+/// Benchmark URL sanitization and normalization
 fn bench_sanitize_url(c: &mut Criterion) {
     let inputs = vec![
         "example.com",
@@ -93,6 +110,7 @@ fn bench_sanitize_url(c: &mut Criterion) {
     });
 }
 
+/// Benchmark large HTML content sanitization
 fn bench_large_html_sanitization(c: &mut Criterion) {
     // Create a large HTML string for benchmarking
     let large_html = format!(
@@ -107,6 +125,7 @@ fn bench_large_html_sanitization(c: &mut Criterion) {
     });
 }
 
+/// Benchmark complex filename sanitization with dangerous characters
 fn bench_complex_filename_sanitization(c: &mut Criterion) {
     let complex_filenames = vec![
         "../../../etc/passwd/../../../root/.ssh/id_rsa",
@@ -125,14 +144,16 @@ fn bench_complex_filename_sanitization(c: &mut Criterion) {
     });
 }
 
-criterion_group!(
-    benches,
-    bench_sanitize_html,
-    bench_sanitize_filename,
-    bench_sanitize_sql_input,
-    bench_trim_and_normalize,
-    bench_sanitize_url,
-    bench_large_html_sanitization,
-    bench_complex_filename_sanitization
-);
+criterion_group! {
+    name = benches;
+    config = Criterion::default();
+    targets = bench_sanitize_html,
+             bench_sanitize_filename,
+             bench_sanitize_sql_input,
+             bench_trim_and_normalize,
+             bench_sanitize_url,
+             bench_large_html_sanitization,
+             bench_complex_filename_sanitization
+}
 criterion_main!(benches);
+
