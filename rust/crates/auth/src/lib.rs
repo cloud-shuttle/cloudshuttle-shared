@@ -33,6 +33,7 @@ pub mod middleware;
 pub mod keys;
 pub mod types;
 pub mod refresh;
+pub mod security;
 
 // Re-export main types
 pub use jwt::JwtService;
@@ -42,3 +43,4 @@ pub use middleware::AuthMiddleware;
 pub use keys::{KeyManager, SigningKeyPair as KeyPair};
 pub use types::*;
 pub use refresh::TokenRefresh;
+pub use security::SecurityValidator;

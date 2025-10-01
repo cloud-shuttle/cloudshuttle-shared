@@ -226,3 +226,181 @@ impl JwtAlgorithm {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::Duration;
+
+    #[test]
+    fn test_jwt_creation() {
+        let service = JwtService::new(b"test-secret-key");
+        let claims = Claims::new("user-123", "tenant-456");
+
+        let token = service.create_token(&claims).unwrap();
+        assert!(!token.is_empty());
+        assert!(token.starts_with("eyJ")); // JWT tokens start with "eyJ"
+    }
+
+    #[test]
+    fn test_jwt_validation() {
+        let service = JwtService::new(b"test-secret-key");
+        let claims = Claims::new("user-123", "tenant-456");
+
+        let token = service.create_token(&claims).unwrap();
+        let validated = service.validate_token(&token).unwrap();
+
+        assert_eq!(validated.sub, "user-123");
+        assert_eq!(validated.tenant_id, "tenant-456");
+    }
+
+    #[test]
+    fn test_invalid_token() {
+        let service = JwtService::new(b"test-secret-key");
+        let result = service.validate_token("invalid-token");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_expired_token() {
+        let service = JwtService::new(b"test-secret-key");
+        let mut claims = Claims::new("user-123", "tenant-456");
+
+        // Set expiration to past
+        claims.exp = (chrono::Utc::now() - Duration::hours(1)).timestamp() as usize;
+
+        let token = service.create_token(&claims).unwrap();
+        let result = service.validate_token(&token);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_token_with_roles_and_permissions() {
+        let service = JwtService::new(b"test-secret-key");
+        let mut claims = Claims::new("user-123", "tenant-456");
+        claims.roles = vec!["admin".to_string(), "user".to_string()];
+        claims.permissions = vec!["read".to_string(), "write".to_string()];
+
+        let token = service.create_token(&claims).unwrap();
+        let validated = service.validate_token(&token).unwrap();
+
+        assert_eq!(validated.sub, "user-123");
+        assert_eq!(validated.tenant_id, "tenant-456");
+        assert_eq!(validated.roles, vec!["admin".to_string(), "user".to_string()]);
+        assert_eq!(validated.permissions, vec!["read".to_string(), "write".to_string()]);
+    }
+
+    #[test]
+    fn test_token_with_custom_expiry() {
+        let service = JwtService::new(b"test-secret-key");
+        let mut claims = Claims::new("user-123", "tenant-456");
+
+        // Set custom expiry (1 hour from now)
+        let future_time = chrono::Utc::now() + Duration::hours(1);
+        claims.exp = future_time.timestamp() as usize;
+
+        let token = service.create_token(&claims).unwrap();
+        let validated = service.validate_token(&token).unwrap();
+
+        assert_eq!(validated.sub, "user-123");
+        // Allow some tolerance for timestamp comparison
+        assert!((validated.exp as i64 - future_time.timestamp()).abs() <= 1);
+    }
+
+    #[test]
+    fn test_token_tampering_detection() {
+        let service1 = JwtService::new(b"secret-key-1");
+        let service2 = JwtService::new(b"secret-key-2");
+
+        let claims = Claims::new("user-123", "tenant-456");
+        let token = service1.create_token(&claims).unwrap();
+
+        // Try to validate with different secret
+        let result = service2.validate_token(&token);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_empty_claims() {
+        let service = JwtService::new(b"test-secret-key");
+        let claims = Claims::new("", "");
+
+        let token = service.create_token(&claims).unwrap();
+        let validated = service.validate_token(&token).unwrap();
+
+        assert_eq!(validated.sub, "");
+        assert_eq!(validated.tenant_id, "");
+    }
+
+    #[test]
+    fn test_very_long_claims() {
+        let service = JwtService::new(b"test-secret-key");
+        let long_string = "a".repeat(1000);
+        let claims = Claims::new(&long_string, &long_string);
+
+        let token = service.create_token(&claims).unwrap();
+        let validated = service.validate_token(&token).unwrap();
+
+        assert_eq!(validated.sub, long_string);
+        assert_eq!(validated.tenant_id, long_string);
+    }
+
+    #[test]
+    fn test_jwt_service_with_different_key_lengths() {
+        // Test with different key lengths
+        let keys = vec![
+            b"short",
+            b"medium-length-key-for-testing",
+            b"very-long-secret-key-that-should-work-fine-with-jwt-encryption-and-decryption-algorithms",
+        ];
+
+        for key in keys {
+            let service = JwtService::new(key);
+            let claims = Claims::new("test-user", "test-tenant");
+
+            let token = service.create_token(&claims).unwrap();
+            let validated = service.validate_token(&token).unwrap();
+
+            assert_eq!(validated.sub, "test-user");
+            assert_eq!(validated.tenant_id, "test-tenant");
+        }
+    }
+
+    #[test]
+    fn test_jwt_expiry_precision() {
+        let service = JwtService::new(b"test-secret-key");
+        let claims = Claims::new("user-123", "tenant-456");
+
+        let token = service.create_token(&claims).unwrap();
+        let validated1 = service.validate_token(&token).unwrap();
+        let validated2 = service.validate_token(&token).unwrap();
+
+        // Expiry should be consistent across validations
+        assert_eq!(validated1.exp, validated2.exp);
+    }
+
+    #[test]
+    fn test_jwt_iat_claim() {
+        let service = JwtService::new(b"test-secret-key");
+        let claims = Claims::new("user-123", "tenant-456");
+
+        let before_creation = chrono::Utc::now().timestamp() as usize;
+        let token = service.create_token(&claims).unwrap();
+        let after_creation = chrono::Utc::now().timestamp() as usize;
+
+        let validated = service.validate_token(&token).unwrap();
+
+        // iat should be set and reasonable
+        assert!(validated.iat >= before_creation);
+        assert!(validated.iat <= after_creation);
+    }
+
+    #[test]
+    fn test_jwt_algorithm_mapping() {
+        assert_eq!(JwtAlgorithm::HS256.to_algorithm(), Algorithm::HS256);
+        assert_eq!(JwtAlgorithm::HS384.to_algorithm(), Algorithm::HS384);
+        assert_eq!(JwtAlgorithm::HS512.to_algorithm(), Algorithm::HS512);
+        assert_eq!(JwtAlgorithm::RS256.to_algorithm(), Algorithm::RS256);
+        assert_eq!(JwtAlgorithm::ES256.to_algorithm(), Algorithm::ES256);
+    }
+}

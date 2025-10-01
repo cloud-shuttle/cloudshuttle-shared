@@ -1,0 +1,1195 @@
+openapi: 3.0.3
+info:
+  title: CloudShuttle Observability API
+  version: 0.2.0
+  description: |
+    Monitoring, metrics, and observability API for CloudShuttle services.
+
+    ## Features
+    - Metrics collection and aggregation
+    - Health monitoring and alerting
+    - Distributed tracing
+    - Logging and audit trails
+    - Performance monitoring
+
+  contact:
+    name: CloudShuttle Team
+    email: team@cloudshuttle.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.cloudshuttle.com/observability
+    description: Production server
+  - url: https://staging-api.cloudshuttle.com/observability
+    description: Staging server
+  - url: http://localhost:8083/observability
+    description: Local development server
+
+security:
+  - BearerAuth: []
+
+paths:
+  /health:
+    get:
+      summary: Observability service health check
+      description: Check if the observability service is operational
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceHealth'
+        '503':
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /metrics:
+    get:
+      summary: Get system metrics
+      description: Retrieve current system and service metrics
+      tags:
+        - Metrics
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: service
+          in: query
+          schema:
+            type: string
+          description: Filter metrics by service name
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Start time for metrics (ISO 8601)
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: End time for metrics (ISO 8601)
+        - name: interval
+          in: query
+          schema:
+            type: string
+            enum: [1m, 5m, 15m, 1h, 6h, 24h]
+            default: 5m
+          description: Aggregation interval
+      responses:
+        '200':
+          description: Metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /metrics/push:
+    post:
+      summary: Push custom metrics
+      description: Submit custom metrics from applications or services
+      tags:
+        - Metrics
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetricsPushRequest'
+      responses:
+        '200':
+          description: Metrics accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Invalid metrics data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /traces:
+    get:
+      summary: Get distributed traces
+      description: Retrieve distributed traces for debugging and monitoring
+      tags:
+        - Tracing
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: trace_id
+          in: query
+          schema:
+            type: string
+          description: Specific trace ID to retrieve
+        - name: service
+          in: query
+          schema:
+            type: string
+          description: Filter traces by service name
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Start time for traces
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: End time for traces
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 100
+          description: Maximum number of traces to return
+      responses:
+        '200':
+          description: Traces retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TracesResponse'
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /logs:
+    get:
+      summary: Query application logs
+      description: Search and retrieve application logs with filtering
+      tags:
+        - Logging
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: service
+          in: query
+          schema:
+            type: string
+          description: Service name to filter logs
+        - name: level
+          in: query
+          schema:
+            type: string
+            enum: [debug, info, warn, error, critical]
+          description: Log level filter
+        - name: message
+          in: query
+          schema:
+            type: string
+          description: Text to search in log messages
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Start time for logs
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: End time for logs
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10000
+            default: 1000
+          description: Maximum number of log entries to return
+      responses:
+        '200':
+          description: Logs retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogsResponse'
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      summary: Submit application logs
+      description: Submit log entries from applications or services
+      tags:
+        - Logging
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogSubmissionRequest'
+      responses:
+        '200':
+          description: Logs accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Invalid log data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /alerts:
+    get:
+      summary: Get active alerts
+      description: Retrieve currently active system and service alerts
+      tags:
+        - Alerting
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: severity
+          in: query
+          schema:
+            type: string
+            enum: [low, medium, high, critical]
+          description: Filter alerts by severity
+        - name: service
+          in: query
+          schema:
+            type: string
+          description: Filter alerts by service name
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, acknowledged, resolved]
+            default: active
+          description: Alert status filter
+      responses:
+        '200':
+          description: Alerts retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertsResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      summary: Create custom alert
+      description: Create a custom alert or notification
+      tags:
+        - Alerting
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertCreationRequest'
+      responses:
+        '201':
+          description: Alert created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertResponse'
+        '400':
+          description: Invalid alert data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /alerts/{alert_id}/acknowledge:
+    post:
+      summary: Acknowledge alert
+      description: Acknowledge an active alert
+      tags:
+        - Alerting
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: alert_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Alert ID to acknowledge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertAcknowledgmentRequest'
+      responses:
+        '200':
+          description: Alert acknowledged
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertResponse'
+        '404':
+          description: Alert not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /dashboards:
+    get:
+      summary: Get available dashboards
+      description: Retrieve list of available monitoring dashboards
+      tags:
+        - Dashboards
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Dashboards retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardsResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /dashboards/{dashboard_id}:
+    get:
+      summary: Get dashboard data
+      description: Retrieve data for a specific monitoring dashboard
+      tags:
+        - Dashboards
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: dashboard_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Dashboard ID
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Start time for dashboard data
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: End time for dashboard data
+      responses:
+        '200':
+          description: Dashboard data retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardDataResponse'
+        '404':
+          description: Dashboard not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token obtained from authentication service
+
+  schemas:
+    ServiceHealth:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+        metrics:
+          $ref: '#/components/schemas/HealthMetrics'
+      required:
+        - status
+        - message
+        - timestamp
+
+    HealthMetrics:
+      type: object
+      properties:
+        active_monitors:
+          type: integer
+          description: Number of active monitoring processes
+        metrics_collected:
+          type: integer
+          description: Total metrics collected
+        alerts_active:
+          type: integer
+          description: Number of active alerts
+        traces_processed:
+          type: integer
+          description: Number of traces processed
+      required:
+        - active_monitors
+        - metrics_collected
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              description: Machine-readable error code
+            message:
+              type: string
+              description: Human-readable error message
+            details:
+              type: object
+              description: Additional error details
+            retryable:
+              type: boolean
+              description: Whether the operation can be retried
+          required:
+            - code
+            - message
+      required:
+        - error
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Operation completed successfully"
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - success
+        - message
+
+    MetricsResponse:
+      type: object
+      properties:
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricData'
+          description: Array of metric data points
+        summary:
+          $ref: '#/components/schemas/MetricsSummary'
+          description: Summary statistics
+        time_range:
+          $ref: '#/components/schemas/TimeRange'
+          description: Time range of the metrics
+      required:
+        - metrics
+
+    MetricData:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Metric name
+        value:
+          type: number
+          description: Metric value
+        timestamp:
+          type: string
+          format: date-time
+          description: When the metric was recorded
+        labels:
+          type: object
+          description: Metric labels/tags
+          additionalProperties:
+            type: string
+        service:
+          type: string
+          description: Service that generated the metric
+        unit:
+          type: string
+          description: Unit of measurement
+      required:
+        - name
+        - value
+        - timestamp
+
+    MetricsSummary:
+      type: object
+      properties:
+        total_metrics:
+          type: integer
+          description: Total number of metrics returned
+        time_range_seconds:
+          type: integer
+          description: Time range in seconds
+        services_count:
+          type: integer
+          description: Number of services with metrics
+        earliest_timestamp:
+          type: string
+          format: date-time
+          description: Earliest metric timestamp
+        latest_timestamp:
+          type: string
+          format: date-time
+          description: Latest metric timestamp
+      required:
+        - total_metrics
+        - time_range_seconds
+
+    TimeRange:
+      type: object
+      properties:
+        from:
+          type: string
+          format: date-time
+          description: Start time
+        to:
+          type: string
+          format: date-time
+          description: End time
+        interval:
+          type: string
+          description: Aggregation interval
+      required:
+        - from
+        - to
+
+    MetricsPushRequest:
+      type: object
+      properties:
+        service:
+          type: string
+          description: Service submitting metrics
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomMetric'
+          description: Metrics to submit
+          maxItems: 1000
+      required:
+        - service
+        - metrics
+
+    CustomMetric:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Metric name
+        value:
+          oneOf:
+            - type: number
+            - type: integer
+          description: Metric value
+        type:
+          type: string
+          enum: [counter, gauge, histogram, summary]
+          description: Metric type
+        labels:
+          type: object
+          description: Metric labels
+          additionalProperties:
+            type: string
+        timestamp:
+          type: string
+          format: date-time
+          description: Optional timestamp (defaults to now)
+        help:
+          type: string
+          description: Metric description
+      required:
+        - name
+        - value
+        - type
+
+    TracesResponse:
+      type: object
+      properties:
+        traces:
+          type: array
+          items:
+            $ref: '#/components/schemas/TraceData'
+          description: Array of trace data
+        total_count:
+          type: integer
+          description: Total number of traces available
+        time_range:
+          $ref: '#/components/schemas/TimeRange'
+          description: Time range queried
+      required:
+        - traces
+
+    TraceData:
+      type: object
+      properties:
+        trace_id:
+          type: string
+          description: Unique trace identifier
+        root_span_id:
+          type: string
+          description: Root span ID
+        spans:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpanData'
+          description: Spans in this trace
+        service_count:
+          type: integer
+          description: Number of services involved
+        duration_ms:
+          type: number
+          description: Total trace duration in milliseconds
+        start_time:
+          type: string
+          format: date-time
+          description: When the trace started
+        status:
+          type: string
+          enum: [ok, error, unknown]
+          description: Overall trace status
+      required:
+        - trace_id
+        - spans
+
+    SpanData:
+      type: object
+      properties:
+        span_id:
+          type: string
+          description: Unique span identifier
+        parent_span_id:
+          type: string
+          description: Parent span ID (null for root span)
+        name:
+          type: string
+          description: Span name/operation
+        service:
+          type: string
+          description: Service that created this span
+        start_time:
+          type: string
+          format: date-time
+          description: When the span started
+        duration_ms:
+          type: number
+          description: Span duration in milliseconds
+        tags:
+          type: object
+          description: Span tags/attributes
+          additionalProperties: true
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpanEvent'
+          description: Events within this span
+        status:
+          type: string
+          enum: [ok, error, unknown]
+          description: Span status
+      required:
+        - span_id
+        - name
+        - service
+        - start_time
+        - duration_ms
+
+    SpanEvent:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Event name
+        timestamp:
+          type: string
+          format: date-time
+          description: When the event occurred
+        attributes:
+          type: object
+          description: Event attributes
+          additionalProperties: true
+      required:
+        - name
+        - timestamp
+
+    LogsResponse:
+      type: object
+      properties:
+        logs:
+          type: array
+          items:
+            $ref: '#/components/schemas/LogEntry'
+          description: Array of log entries
+        total_count:
+          type: integer
+          description: Total number of log entries available
+        query_info:
+          $ref: '#/components/schemas/LogQueryInfo'
+          description: Information about the log query
+      required:
+        - logs
+
+    LogEntry:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: When the log was created
+        level:
+          type: string
+          enum: [debug, info, warn, error, critical]
+          description: Log level
+        service:
+          type: string
+          description: Service that generated the log
+        message:
+          type: string
+          description: Log message
+        fields:
+          type: object
+          description: Structured log fields
+          additionalProperties: true
+        trace_id:
+          type: string
+          description: Associated trace ID (if any)
+        span_id:
+          type: string
+          description: Associated span ID (if any)
+        source:
+          type: string
+          description: Source file/function
+        line:
+          type: integer
+          description: Line number in source
+      required:
+        - timestamp
+        - level
+        - service
+        - message
+
+    LogQueryInfo:
+      type: object
+      properties:
+        query_time_ms:
+          type: number
+          description: Time taken to execute the query
+        result_count:
+          type: integer
+          description: Number of results returned
+        total_available:
+          type: integer
+          description: Total number of matching logs available
+        time_range:
+          $ref: '#/components/schemas/TimeRange'
+          description: Time range queried
+      required:
+        - query_time_ms
+        - result_count
+        - total_available
+
+    LogSubmissionRequest:
+      type: object
+      properties:
+        service:
+          type: string
+          description: Service submitting logs
+        logs:
+          type: array
+          items:
+            $ref: '#/components/schemas/LogEntrySubmission'
+          description: Log entries to submit
+          maxItems: 1000
+      required:
+        - service
+        - logs
+
+    LogEntrySubmission:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Log timestamp
+        level:
+          type: string
+          enum: [debug, info, warn, error, critical]
+          description: Log level
+        message:
+          type: string
+          description: Log message
+        fields:
+          type: object
+          description: Structured log fields
+          additionalProperties: true
+      required:
+        - level
+        - message
+
+    AlertsResponse:
+      type: object
+      properties:
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+          description: Array of active alerts
+        summary:
+          $ref: '#/components/schemas/AlertsSummary'
+          description: Summary of alerts by status/severity
+      required:
+        - alerts
+
+    Alert:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique alert identifier
+        title:
+          type: string
+          description: Alert title
+        description:
+          type: string
+          description: Alert description
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+          description: Alert severity
+        status:
+          type: string
+          enum: [active, acknowledged, resolved]
+          description: Current alert status
+        service:
+          type: string
+          description: Service that triggered the alert
+        condition:
+          type: string
+          description: Alert condition/rule that was triggered
+        value:
+          type: number
+          description: Current metric value
+        threshold:
+          type: number
+          description: Threshold that was exceeded
+        created_at:
+          type: string
+          format: date-time
+          description: When the alert was created
+        updated_at:
+          type: string
+          format: date-time
+          description: When the alert was last updated
+        acknowledged_by:
+          type: string
+          description: User who acknowledged the alert
+        acknowledged_at:
+          type: string
+          format: date-time
+          description: When the alert was acknowledged
+        labels:
+          type: object
+          description: Additional alert labels
+          additionalProperties:
+            type: string
+      required:
+        - id
+        - title
+        - severity
+        - status
+        - service
+        - condition
+        - created_at
+        - updated_at
+
+    AlertsSummary:
+      type: object
+      properties:
+        total_active:
+          type: integer
+          description: Total number of active alerts
+        by_severity:
+          type: object
+          properties:
+            low:
+              type: integer
+            medium:
+              type: integer
+            high:
+              type: integer
+            critical:
+              type: integer
+          description: Alert count by severity
+        by_status:
+          type: object
+          properties:
+            active:
+              type: integer
+            acknowledged:
+              type: integer
+            resolved:
+              type: integer
+          description: Alert count by status
+      required:
+        - total_active
+        - by_severity
+        - by_status
+
+    AlertCreationRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Alert title
+        description:
+          type: string
+          description: Alert description
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+          description: Alert severity
+        service:
+          type: string
+          description: Service that triggered the alert
+        condition:
+          type: string
+          description: Alert condition/rule
+        labels:
+          type: object
+          description: Additional alert labels
+          additionalProperties:
+            type: string
+      required:
+        - title
+        - severity
+        - service
+        - condition
+
+    AlertResponse:
+      type: object
+      properties:
+        alert:
+          $ref: '#/components/schemas/Alert'
+          description: Created/updated alert
+      required:
+        - alert
+
+    AlertAcknowledgmentRequest:
+      type: object
+      properties:
+        comment:
+          type: string
+          description: Optional acknowledgment comment
+        acknowledged_by:
+          type: string
+          description: User acknowledging the alert (defaults to authenticated user)
+      required: []
+
+    DashboardsResponse:
+      type: object
+      properties:
+        dashboards:
+          type: array
+          items:
+            $ref: '#/components/schemas/DashboardInfo'
+          description: Available dashboards
+      required:
+        - dashboards
+
+    DashboardInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Dashboard unique identifier
+        name:
+          type: string
+          description: Dashboard display name
+        description:
+          type: string
+          description: Dashboard description
+        category:
+          type: string
+          description: Dashboard category
+        tags:
+          type: array
+          items:
+            type: string
+          description: Dashboard tags
+        panels_count:
+          type: integer
+          description: Number of panels in the dashboard
+        last_modified:
+          type: string
+          format: date-time
+          description: When the dashboard was last modified
+        created_by:
+          type: string
+          description: User who created the dashboard
+      required:
+        - id
+        - name
+        - category
+
+    DashboardDataResponse:
+      type: object
+      properties:
+        dashboard:
+          $ref: '#/components/schemas/DashboardInfo'
+          description: Dashboard metadata
+        panels:
+          type: array
+          items:
+            $ref: '#/components/schemas/DashboardPanel'
+          description: Dashboard panels with data
+        time_range:
+          $ref: '#/components/schemas/TimeRange'
+          description: Time range for the dashboard data
+      required:
+        - dashboard
+        - panels
+
+    DashboardPanel:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Panel unique identifier
+        title:
+          type: string
+          description: Panel title
+        type:
+          type: string
+          enum: [graph, table, heatmap, stat, gauge, logs, traces]
+          description: Panel visualization type
+        targets:
+          type: array
+          items:
+            $ref: '#/components/schemas/PanelTarget'
+          description: Data sources for this panel
+        data:
+          description: Panel data (format depends on panel type)
+        options:
+          type: object
+          description: Panel-specific options
+          additionalProperties: true
+      required:
+        - id
+        - title
+        - type
+        - targets
+
+    PanelTarget:
+      type: object
+      properties:
+        expr:
+          type: string
+          description: Metric query expression
+        legend:
+          type: string
+          description: Legend label for this target
+        ref_id:
+          type: string
+          description: Reference ID for this target
+      required:
+        - expr

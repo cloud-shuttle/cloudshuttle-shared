@@ -1,0 +1,745 @@
+openapi: 3.0.3
+info:
+  title: CloudShuttle Database API
+  version: 0.2.0
+  description: |
+    Database operations and query API for CloudShuttle services.
+
+    ## Features
+    - Connection management and pooling
+    - Dynamic query building and execution
+    - Transaction management
+    - Batch operations
+    - Health monitoring and metrics
+    - Migration support
+
+  contact:
+    name: CloudShuttle Team
+    email: team@cloudshuttle.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.cloudshuttle.com/database
+    description: Production server
+  - url: https://staging-api.cloudshuttle.com/database
+    description: Staging server
+  - url: http://localhost:8081/database
+    description: Local development server
+
+security:
+  - BearerAuth: []
+
+paths:
+  /health:
+    get:
+      summary: Database service health check
+      description: Check database connectivity and service health
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Database is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatabaseHealth'
+        '503':
+          description: Database is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /connections:
+    get:
+      summary: Get connection pool metrics
+      description: Retrieve current database connection pool statistics
+      tags:
+        - Monitoring
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Connection metrics retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoolMetrics'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /query:
+    post:
+      summary: Execute database query
+      description: Execute a dynamic database query with filtering, sorting, and pagination
+      tags:
+        - Query Operations
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryRequest'
+      responses:
+        '200':
+          description: Query executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryResult'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /batch:
+    post:
+      summary: Execute batch operations
+      description: Execute multiple database operations in a batch
+      tags:
+        - Batch Operations
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchRequest'
+      responses:
+        '200':
+          description: Batch operations completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchResult'
+        '400':
+          description: Invalid batch request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /transactions:
+    post:
+      summary: Execute transaction
+      description: Execute multiple operations within a database transaction
+      tags:
+        - Transactions
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionRequest'
+      responses:
+        '200':
+          description: Transaction completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResult'
+        '400':
+          description: Transaction failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /migrations:
+    get:
+      summary: Get migration status
+      description: Retrieve current database migration status
+      tags:
+        - Migrations
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Migration status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MigrationStatus'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      summary: Run pending migrations
+      description: Execute all pending database migrations
+      tags:
+        - Migrations
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Migrations executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MigrationResult'
+        '400':
+          description: Migration failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /metrics:
+    get:
+      summary: Get database performance metrics
+      description: Retrieve database performance and usage metrics
+      tags:
+        - Monitoring
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Metrics retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatabaseMetrics'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token obtained from authentication service
+
+  schemas:
+    DatabaseHealth:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+        metrics:
+          $ref: '#/components/schemas/HealthMetrics'
+      required:
+        - status
+        - message
+        - timestamp
+
+    HealthMetrics:
+      type: object
+      properties:
+        connection_count:
+          type: integer
+          description: Current number of active connections
+        active_connections:
+          type: integer
+          description: Number of connections in use
+        idle_connections:
+          type: integer
+          description: Number of idle connections
+        total_queries:
+          type: integer
+          description: Total queries executed
+        average_query_time_ms:
+          type: number
+          description: Average query execution time in milliseconds
+      required:
+        - connection_count
+        - active_connections
+        - idle_connections
+
+    PoolMetrics:
+      type: object
+      properties:
+        total_connections:
+          type: integer
+          description: Total connections in pool
+        idle_connections:
+          type: integer
+          description: Available idle connections
+        acquired_connections:
+          type: integer
+          description: Currently acquired connections
+        pending_connections:
+          type: integer
+          description: Pending connection requests
+        max_connections:
+          type: integer
+          description: Maximum pool size
+      required:
+        - total_connections
+        - idle_connections
+        - acquired_connections
+        - pending_connections
+        - max_connections
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              description: Machine-readable error code
+            message:
+              type: string
+              description: Human-readable error message
+            details:
+              type: object
+              description: Additional error details
+            retryable:
+              type: boolean
+              description: Whether the operation can be retried
+          required:
+            - code
+            - message
+      required:
+        - error
+
+    QueryRequest:
+      type: object
+      properties:
+        table:
+          type: string
+          description: Database table name
+        operation:
+          type: string
+          enum: [select, insert, update, delete]
+          description: Query operation type
+        criteria:
+          $ref: '#/components/schemas/QueryCriteria'
+        options:
+          $ref: '#/components/schemas/QueryOptions'
+      required:
+        - table
+        - operation
+
+    QueryCriteria:
+      type: object
+      properties:
+        filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/Filter'
+          description: Query filters
+        sorting:
+          type: array
+          items:
+            $ref: '#/components/schemas/SortOrder'
+          description: Sort specifications
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+          description: Pagination parameters
+      required:
+        - filters
+        - sorting
+
+    Filter:
+      type: object
+      properties:
+        field:
+          type: string
+          description: Field name to filter on
+        operator:
+          type: string
+          enum: [eq, ne, gt, lt, gte, lte, like, in, nin, null, nnull]
+          description: Filter operator
+        value:
+          description: Filter value (type depends on field)
+      required:
+        - field
+        - operator
+
+    SortOrder:
+      type: object
+      properties:
+        field:
+          type: string
+          description: Field name to sort by
+        direction:
+          type: string
+          enum: [asc, desc]
+          description: Sort direction
+      required:
+        - field
+        - direction
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          description: Page number (1-based)
+        page_size:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          description: Number of items per page
+      required:
+        - page
+        - page_size
+
+    QueryOptions:
+      type: object
+      properties:
+        timeout:
+          type: integer
+          description: Query timeout in seconds
+        read_only:
+          type: boolean
+          description: Whether query should be read-only
+          default: false
+        isolation_level:
+          type: string
+          enum: [read_uncommitted, read_committed, repeatable_read, serializable]
+          description: Transaction isolation level
+
+    QueryResult:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            description: Query result rows
+          description: Query result data
+        total_count:
+          type: integer
+          description: Total number of matching records
+        page:
+          type: integer
+          description: Current page number
+        page_size:
+          type: integer
+          description: Items per page
+        execution_time_ms:
+          type: number
+          description: Query execution time in milliseconds
+        query_stats:
+          $ref: '#/components/schemas/QueryStats'
+      required:
+        - data
+        - execution_time_ms
+
+    QueryStats:
+      type: object
+      properties:
+        total_queries:
+          type: integer
+          description: Total queries executed
+        successful_queries:
+          type: integer
+          description: Number of successful queries
+        failed_queries:
+          type: integer
+          description: Number of failed queries
+        total_execution_time:
+          type: integer
+          description: Total execution time in milliseconds
+        average_execution_time:
+          type: integer
+          description: Average execution time in milliseconds
+      required:
+        - total_queries
+        - successful_queries
+        - failed_queries
+        - total_execution_time
+        - average_execution_time
+
+    BatchRequest:
+      type: object
+      properties:
+        operations:
+          type: array
+          items:
+            $ref: '#/components/schemas/BatchOperation'
+          description: Batch operations to execute
+        options:
+          $ref: '#/components/schemas/BatchOptions'
+          description: Batch execution options
+      required:
+        - operations
+
+    BatchOperation:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [insert, update, delete, select]
+          description: Operation type
+        table:
+          type: string
+          description: Target table name
+        data:
+          type: object
+          description: Operation data (insert/update values)
+        where_clause:
+          type: object
+          description: WHERE conditions for update/delete
+      required:
+        - type
+        - table
+
+    BatchOptions:
+      type: object
+      properties:
+        continue_on_error:
+          type: boolean
+          description: Continue executing operations if one fails
+          default: false
+        max_parallel_operations:
+          type: integer
+          description: Maximum parallel operations
+        timeout_per_operation:
+          type: integer
+          description: Timeout per operation in seconds
+      required:
+        - continue_on_error
+
+    BatchResult:
+      type: object
+      properties:
+        total_operations:
+          type: integer
+          description: Total operations in batch
+        successful_operations:
+          type: integer
+          description: Number of successful operations
+        failed_operations:
+          type: integer
+          description: Number of failed operations
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BatchItemResult'
+          description: Individual operation results
+        execution_time_ms:
+          type: number
+          description: Total batch execution time
+      required:
+        - total_operations
+        - successful_operations
+        - failed_operations
+        - results
+        - execution_time_ms
+
+    BatchItemResult:
+      type: object
+      properties:
+        index:
+          type: integer
+          description: Operation index in batch
+        success:
+          type: boolean
+          description: Whether operation succeeded
+        rows_affected:
+          type: integer
+          description: Number of rows affected
+        error_message:
+          type: string
+          description: Error message if operation failed
+        execution_time_ms:
+          type: number
+          description: Operation execution time
+      required:
+        - index
+        - success
+        - execution_time_ms
+
+    TransactionRequest:
+      type: object
+      properties:
+        operations:
+          type: array
+          items:
+            $ref: '#/components/schemas/BatchOperation'
+          description: Operations to execute in transaction
+        isolation_level:
+          type: string
+          enum: [read_uncommitted, read_committed, repeatable_read, serializable]
+          description: Transaction isolation level
+          default: read_committed
+      required:
+        - operations
+
+    TransactionResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether transaction committed successfully
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BatchItemResult'
+          description: Individual operation results
+        execution_time_ms:
+          type: number
+          description: Total transaction execution time
+        transaction_id:
+          type: string
+          description: Unique transaction identifier
+      required:
+        - success
+        - results
+        - execution_time_ms
+
+    MigrationStatus:
+      type: object
+      properties:
+        current_version:
+          type: string
+          description: Current database schema version
+        applied_migrations:
+          type: array
+          items:
+            $ref: '#/components/schemas/MigrationRecord'
+          description: List of applied migrations
+        pending_migrations:
+          type: array
+          items:
+            type: string
+          description: List of pending migration versions
+        last_migration_at:
+          type: string
+          format: date-time
+          description: Timestamp of last migration
+      required:
+        - current_version
+        - applied_migrations
+        - pending_migrations
+
+    MigrationRecord:
+      type: object
+      properties:
+        version:
+          type: string
+          description: Migration version
+        name:
+          type: string
+          description: Migration name
+        executed_at:
+          type: string
+          format: date-time
+          description: When migration was executed
+        success:
+          type: boolean
+          description: Whether migration succeeded
+        execution_time_ms:
+          type: integer
+          description: Migration execution time
+      required:
+        - version
+        - name
+        - executed_at
+        - success
+
+    MigrationResult:
+      type: object
+      properties:
+        migrations_applied:
+          type: integer
+          description: Number of migrations applied
+        migrations_failed:
+          type: integer
+          description: Number of migrations that failed
+        total_execution_time_ms:
+          type: number
+          description: Total execution time
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/MigrationRecord'
+          description: Individual migration results
+      required:
+        - migrations_applied
+        - migrations_failed
+        - total_execution_time_ms
+        - results
+
+    DatabaseMetrics:
+      type: object
+      properties:
+        uptime_seconds:
+          type: integer
+          description: Database service uptime
+        total_connections_created:
+          type: integer
+          description: Total connections created
+        active_connections:
+          type: integer
+          description: Currently active connections
+        queries_per_second:
+          type: number
+          description: Average queries per second
+        average_query_latency_ms:
+          type: number
+          description: Average query latency
+        slow_queries_count:
+          type: integer
+          description: Number of slow queries (>100ms)
+        error_rate_percent:
+          type: number
+          description: Query error rate percentage
+        cache_hit_rate_percent:
+          type: number
+          description: Query cache hit rate
+      required:
+        - uptime_seconds
+        - total_connections_created
+        - active_connections
+        - queries_per_second
+        - average_query_latency_ms

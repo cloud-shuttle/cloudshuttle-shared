@@ -1,0 +1,79 @@
+# CloudShuttle Shared Libraries - Cargo.toml Template
+# Copy this template to your project's Cargo.toml and modify as needed
+
+[package]
+name = "your-service-name"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Core CloudShuttle shared libraries
+cloudshuttle-auth = { git = "https://github.com/your-org/cloudshuttle-shared.git", branch = "main" }
+cloudshuttle-database = { git = "https://github.com/your-org/cloudshuttle-shared.git", branch = "main" }
+cloudshuttle-error-handling = { git = "https://github.com/your-org/cloudshuttle-shared.git", branch = "main" }
+cloudshuttle-validation = { git = "https://github.com/your-org/cloudshuttle-shared.git", branch = "main" }
+cloudshuttle-observability = { git = "https://github.com/your-org/cloudshuttle-shared.git", branch = "main" }
+
+# Web framework (if building HTTP services)
+axum = "0.7"
+tower = "0.5"
+tower-http = "0.5"
+
+# Async runtime
+tokio = { version = "1.40", features = ["full"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Configuration
+config = "0.14"
+
+# Additional utilities
+uuid = { version = "1.0", features = ["v4"] }
+chrono = { version = "0.4", features = ["serde"] }
+thiserror = "1.0"
+anyhow = "1.0"
+
+[dev-dependencies]
+# Testing
+tokio-test = "0.4"
+
+# For development - use path dependencies instead of git
+# cloudshuttle-auth = { path = "../cloudshuttle-shared/rust/crates/auth" }
+# cloudshuttle-database = { path = "../cloudshuttle-shared/rust/crates/database" }
+# cloudshuttle-error-handling = { path = "../cloudshuttle-shared/rust/crates/error-handling" }
+# cloudshuttle-validation = { path = "../cloudshuttle-shared/rust/crates/validation" }
+# cloudshuttle-observability = { path = "../cloudshuttle-shared/rust/crates/observability" }
+
+[features]
+default = []
+middleware = ["cloudshuttle-auth/middleware"]
+postgres = ["cloudshuttle-database/postgres"]
+mysql = ["cloudshuttle-database/mysql"]
+
+# Example of how to enable optional features from shared libraries
+# security-audit = ["cloudshuttle-auth/security-audit"]
+# advanced-validation = ["cloudshuttle-validation/advanced"]
+# metrics = ["cloudshuttle-observability/metrics"]
+
+[profile.release]
+opt-level = 3
+debug = false
+strip = true
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.dev]
+opt-level = 0
+debug = true
+overflow-checks = true
+
+# Example patch section for overriding dependencies if needed
+# [patch.crates-io]
+# some-dependency = { git = "https://github.com/your-org/some-dependency.git" }

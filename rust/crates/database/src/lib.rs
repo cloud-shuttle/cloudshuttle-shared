@@ -42,4 +42,8 @@ pub use migrations::MigrationRunner;
 pub use connection::QueryHelper;
 pub use transaction::{DatabaseTransaction, TransactionResult};
 pub use pool::{ConnectionPool, PoolConfig};
-pub use types::*;
+
+// Re-export commonly used types from modular structure
+pub use types::entities::{BaseEntity, SoftDeleteEntity};
+pub use types::models::{DatabaseHealth, HealthStatus, QueryCriteria, Pagination};
+pub use types::traits::{Repository, QueryRepository, TransactionalRepository};

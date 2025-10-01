@@ -22,7 +22,13 @@ async-trait.workspace = true
 jsonwebtoken = "9.0"
 base64.workspace = true
 ring = "0.17"
+argon2 = { version = "0.5", features = ["std"] }
 axum = { workspace = true, optional = true }
+
+[dev-dependencies]
+pact_consumer = "0.10"
+criterion = { version = "0.5", features = ["html_reports"] }
+futures = "0.3"
 
 [features]
 default = []
