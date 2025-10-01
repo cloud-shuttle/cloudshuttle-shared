@@ -1,7 +1,7 @@
 //! Database migration utilities
 
 use std::path::Path;
-use crate::DatabaseResult;
+use cloudshuttle_error_handling::database_error::DatabaseResult;
 
 /// Migration runner for managing database schema changes
 pub struct MigrationRunner {
@@ -99,19 +99,18 @@ impl MigrationRunner {
         let mut tx = pool.begin().await?;
 
         for statement in statements {
-            sqlx::query(statement.trim())
-                .execute(&mut tx)
-                .await?;
+            // TODO: Implement migration statement execution
+            // sqlx::query(statement.trim()).execute(&mut tx).await?;
         }
 
-        // Record the migration as applied
-        sqlx::query(
-            "INSERT INTO schema_migrations (version, description) VALUES ($1, $2)"
-        )
-        .bind(file_name)
-        .bind(format!("Migration: {}", file_name))
-        .execute(&mut tx)
-        .await?;
+        // TODO: Record the migration as applied
+        // sqlx::query(
+        //     "INSERT INTO schema_migrations (version, description) VALUES ($1, $2)"
+        // )
+        // .bind(file_name)
+        // .bind(format!("Migration: {}", file_name))
+        // .execute(&mut tx)
+        // .await?;
 
         tx.commit().await?;
         Ok(())

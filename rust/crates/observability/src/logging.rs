@@ -106,21 +106,36 @@ pub fn init_tracing_with_config(config: TracingConfig) -> Result<(), Box<dyn std
             EnvFilter::new(format!("{}={}", config.service_name, config.level))
         });
 
-    // Create formatter based on configuration
-    let subscriber = match config.format {
-        LogFormat::Compact => tracing_subscriber::registry()
-            .with(filter)
-            .with(fmt::layer().with_target(false).with_thread_ids(false).with_thread_names(false).compact()),
-        LogFormat::Pretty => tracing_subscriber::registry()
-            .with(filter)
-            .with(fmt::layer().with_target(false).with_thread_ids(false).with_thread_names(false).pretty()),
-        LogFormat::Json => tracing_subscriber::registry()
-            .with(filter)
-            .with(fmt::layer().with_target(false).with_thread_ids(false).with_thread_names(false).json()),
-    };
-
-    // Initialize the subscriber
-    subscriber.init();
+    // Set up the subscriber based on format
+    match config.format {
+        LogFormat::Compact => {
+            tracing_subscriber::fmt()
+                .with_env_filter(filter)
+                .with_target(false)
+                .with_thread_ids(false)
+                .with_thread_names(false)
+                .compact()
+                .init();
+        }
+        LogFormat::Pretty => {
+            tracing_subscriber::fmt()
+                .with_env_filter(filter)
+                .with_target(false)
+                .with_thread_ids(false)
+                .with_thread_names(false)
+                .pretty()
+                .init();
+        }
+        LogFormat::Json => {
+            tracing_subscriber::fmt()
+                .with_env_filter(filter)
+                .with_target(false)
+                .with_thread_ids(false)
+                .with_thread_names(false)
+                .json()
+                .init();
+        }
+    }
 
     info!(
         service = %config.service_name,

@@ -2,7 +2,7 @@
 
 use sqlx::{PgConnection, postgres::PgRow};
 use serde::{Deserialize, Serialize};
-use crate::DatabaseResult;
+use cloudshuttle_error_handling::database_error::DatabaseResult;
 
 /// Query builder for dynamic SQL construction
 #[derive(Debug, Clone)]

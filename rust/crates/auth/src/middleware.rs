@@ -8,7 +8,15 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use std::sync::Arc;
+use std::pin::Pin;
+use std::future::Future;
 use crate::{JwtService, Claims, AuthResult, AuthError};
+
+#[cfg(feature = "middleware")]
+type MiddlewareFuture = Pin<Box<dyn Future<Output = Response> + Send>>;
+
+#[cfg(feature = "middleware")]
+type MiddlewareFn = Box<dyn Fn(Request, Next) -> MiddlewareFuture + Send + Sync>;
 
 /// Authentication middleware layer
 #[cfg(feature = "middleware")]
@@ -55,16 +63,16 @@ impl AuthMiddleware {
     }
 
     /// Convert to Axum middleware function
-    pub fn into_layer(self) -> impl Fn(Request, Next) -> (impl std::future::Future<Output = Response> + Clone) {
+    pub fn into_layer(self) -> MiddlewareFn {
         let jwt_service = self.jwt_service.clone();
         let required_roles = self.required_roles.clone();
         let optional_auth = self.optional_auth;
 
-        move |mut req: Request, next: Next| {
+        Box::new(move |mut req: Request, next: Next| {
             let jwt_service = jwt_service.clone();
             let required_roles = required_roles.clone();
 
-            async move {
+            Box::pin(async move {
                 // Extract token from Authorization header
                 let token = extract_token_from_header(req.headers());
 
@@ -105,8 +113,8 @@ impl AuthMiddleware {
                         }
                     }
                 }
-            }
-        }
+            })
+        })
     }
 }
 
@@ -163,10 +171,13 @@ impl AuthenticatedUser {
 
 #[async_trait::async_trait]
 #[cfg(feature = "middleware")]
-impl axum::extract::FromRequest for AuthenticatedUser {
+impl<S> axum::extract::FromRequest<S> for AuthenticatedUser
+where
+    S: Send + Sync,
+{
     type Rejection = Response;
 
-    async fn from_request(req: &mut Request, _state: &axum::extract::RequestState) -> Result<Self, Self::Rejection> {
+    async fn from_request(req: axum::extract::Request, _state: &S) -> Result<Self, Self::Rejection> {
         match req.extensions().get::<Claims>() {
             Some(claims) => Ok(AuthenticatedUser(claims.clone())),
             None => Err(AuthError::MissingToken.into_response()),
@@ -180,10 +191,13 @@ pub struct OptionalUser(pub Option<Claims>);
 
 #[cfg(feature = "middleware")]
 #[async_trait::async_trait]
-impl axum::extract::FromRequest for OptionalUser {
+impl<S> axum::extract::FromRequest<S> for OptionalUser
+where
+    S: Send + Sync,
+{
     type Rejection = Response;
 
-    async fn from_request(req: &mut Request, _state: &axum::extract::RequestState) -> Result<Self, Self::Rejection> {
+    async fn from_request(req: axum::extract::Request, _state: &S) -> Result<Self, Self::Rejection> {
         let claims = req.extensions().get::<Claims>().cloned();
         Ok(OptionalUser(claims))
     }
@@ -207,13 +221,13 @@ impl RoleGuard {
         Self::new(vec!["tenant_admin".to_string(), "admin".to_string()])
     }
 
-    pub fn into_layer(self) -> impl Fn(Request, Next) -> (impl std::future::Future<Output = Response> + Clone) {
+    pub fn into_layer(self) -> MiddlewareFn {
         let required_roles = self.required_roles;
 
-        move |req: Request, next: Next| {
+        Box::new(move |req: Request, next: Next| {
             let required_roles = required_roles.clone();
 
-            async move {
+            Box::pin(async move {
                 match req.extensions().get::<Claims>() {
                     Some(claims) => {
                         if claims.has_any_role(&required_roles) {
@@ -227,8 +241,8 @@ impl RoleGuard {
                     }
                     None => AuthError::MissingToken.into_response(),
                 }
-            }
-        }
+            })
+        })
     }
 }
 
@@ -242,13 +256,13 @@ impl PermissionGuard {
         Self { required_permissions: permissions }
     }
 
-    pub fn into_layer(self) -> impl Fn(Request, Next) -> (impl std::future::Future<Output = Response> + Clone) {
+    pub fn into_layer(self) -> MiddlewareFn {
         let required_permissions = self.required_permissions;
 
-        move |req: Request, next: Next| {
+        Box::new(move |req: Request, next: Next| {
             let required_permissions = required_permissions.clone();
 
-            async move {
+            Box::pin(async move {
                 match req.extensions().get::<Claims>() {
                     Some(claims) => {
                         if claims.has_any_permission(&required_permissions) {
@@ -262,8 +276,8 @@ impl PermissionGuard {
                     }
                     None => AuthError::MissingToken.into_response(),
                 }
-            }
-        }
+            })
+        })
     }
 }
 
@@ -275,15 +289,15 @@ impl TenantGuard {
         Self
     }
 
-    pub fn into_layer(self) -> impl Fn(Request, Next) -> (impl std::future::Future<Output = Response> + Clone) {
-        move |req: Request, next: Next| {
-            async move {
+    pub fn into_layer(self) -> MiddlewareFn {
+        Box::new(move |req: Request, next: Next| {
+            Box::pin(async move {
                 // This would typically extract tenant ID from path or header
                 // and verify it matches the user's tenant ID
                 // For now, just pass through
                 next.run(req).await
-            }
-        }
+            })
+        })
     }
 }
 
@@ -301,9 +315,9 @@ impl CorsAuthLayer {
         Self
     }
 
-    pub fn into_layer(self) -> impl Fn(Request, Next) -> (impl std::future::Future<Output = Response> + Clone) {
-        move |req: Request, next: Next| {
-            async move {
+    pub fn into_layer(self) -> MiddlewareFn {
+        Box::new(move |req: Request, next: Next| {
+            Box::pin(async move {
                 let mut response = next.run(req).await;
 
                 // Add CORS headers for authenticated endpoints
@@ -323,8 +337,8 @@ impl CorsAuthLayer {
                 headers.insert("Access-Control-Allow-Credentials", "true".parse().unwrap());
 
                 response
-            }
-        }
+            })
+        })
     }
 }
 

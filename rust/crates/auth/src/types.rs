@@ -63,6 +63,42 @@ pub enum AuthError {
     ExternalService(String),
 }
 
+#[cfg(feature = "middleware")]
+impl axum::response::IntoResponse for AuthError {
+    fn into_response(self) -> axum::response::Response {
+        use axum::{http::StatusCode, Json};
+        use serde_json::json;
+
+        let (status, message) = match self {
+            AuthError::TokenCreation(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Authentication service error"),
+            AuthError::TokenValidation(_) => (StatusCode::UNAUTHORIZED, "Invalid token"),
+            AuthError::InvalidKey(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Authentication service error"),
+            AuthError::UnsupportedAlgorithm(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Authentication service error"),
+            AuthError::TokenExpired => (StatusCode::UNAUTHORIZED, "Token expired"),
+            AuthError::InvalidTokenType { .. } => (StatusCode::UNAUTHORIZED, "Invalid token type"),
+            AuthError::InvalidCredentials => (StatusCode::UNAUTHORIZED, "Invalid credentials"),
+            AuthError::MissingToken => (StatusCode::UNAUTHORIZED, "Authentication required"),
+            AuthError::InsufficientPermissions { .. } => (StatusCode::FORBIDDEN, "Insufficient permissions"),
+            AuthError::AccountLocked => (StatusCode::LOCKED, "Account locked"),
+            AuthError::AccountDisabled => (StatusCode::FORBIDDEN, "Account disabled"),
+            AuthError::TooManyFailedAttempts => (StatusCode::TOO_MANY_REQUESTS, "Too many failed attempts"),
+            AuthError::SessionExpired => (StatusCode::UNAUTHORIZED, "Session expired"),
+            AuthError::InvalidRefreshToken => (StatusCode::UNAUTHORIZED, "Invalid refresh token"),
+            AuthError::RefreshTokenExpired => (StatusCode::UNAUTHORIZED, "Refresh token expired"),
+            AuthError::TokenNotFound => (StatusCode::UNAUTHORIZED, "Token not found"),
+            AuthError::Database(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Authentication service error"),
+            AuthError::ExternalService(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Authentication service error"),
+        };
+
+        let body = Json(json!({
+            "error": message,
+            "code": format!("AUTH_{}", status.as_u16())
+        }));
+
+        (status, body).into_response()
+    }
+}
+
 /// User authentication data
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserCredentials {

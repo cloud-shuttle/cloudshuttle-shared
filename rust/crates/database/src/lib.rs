@@ -37,9 +37,9 @@ pub mod pool;
 pub mod types;
 
 // Re-export main types
-pub use connection::DatabaseConnection;
+pub use connection::{DatabaseConnection, DatabaseConfig};
 pub use migrations::MigrationRunner;
-pub use query::QueryHelper;
+pub use connection::QueryHelper;
 pub use transaction::{DatabaseTransaction, TransactionResult};
-pub use pool::ConnectionPool;
+pub use pool::{ConnectionPool, PoolConfig};
 pub use types::*;

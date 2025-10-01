@@ -1,8 +1,9 @@
 //! Connection pool management
 
-use sqlx::{PgPool, postgres::PgPoolOptions};
+use sqlx::{PgPool, postgres::PgPoolOptions, Row};
 use std::time::Duration;
-use crate::{DatabaseResult, DatabaseConfig};
+use cloudshuttle_error_handling::database_error::DatabaseResult;
+use crate::DatabaseConfig;
 
 /// Enhanced connection pool with metrics and health monitoring
 pub struct ConnectionPool {

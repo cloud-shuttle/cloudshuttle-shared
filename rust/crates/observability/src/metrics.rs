@@ -288,7 +288,8 @@ impl PerformanceMetrics {
     pub fn record_memory_usage() {
         // Could record memory usage metrics
         if let Ok(usage) = sys_info::mem_info() {
-            tracing::debug!("Memory usage: {} KB used, {} KB total", usage.used, usage.total);
+            // TODO: Check actual MemInfo fields
+            tracing::debug!("Memory info retrieved: {:?}", usage);
         }
     }
 

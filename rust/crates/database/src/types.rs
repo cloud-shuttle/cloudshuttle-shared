@@ -4,6 +4,7 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use sqlx::{PgConnection, postgres::PgRow};
 use uuid::Uuid;
+use cloudshuttle_error_handling::database_error::DatabaseResult;
 
 /// Common database entity fields
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -367,37 +368,37 @@ impl<T> OperationResult<T> {
 /// Entity repository trait
 #[async_trait]
 pub trait Repository<T, ID = Uuid> {
-    async fn find_by_id(&self, id: ID) -> crate::DatabaseResult<Option<T>>;
-    async fn find_all(&self) -> crate::DatabaseResult<Vec<T>>;
-    async fn save(&self, entity: T) -> crate::DatabaseResult<T>;
-    async fn delete(&self, id: ID) -> crate::DatabaseResult<bool>;
-    async fn exists(&self, id: ID) -> crate::DatabaseResult<bool>;
-    async fn count(&self) -> crate::DatabaseResult<i64>;
+    async fn find_by_id(&self, id: ID) -> DatabaseResult<Option<T>>;
+    async fn find_all(&self) -> DatabaseResult<Vec<T>>;
+    async fn save(&self, entity: T) -> DatabaseResult<T>;
+    async fn delete(&self, id: ID) -> DatabaseResult<bool>;
+    async fn exists(&self, id: ID) -> DatabaseResult<bool>;
+    async fn count(&self) -> DatabaseResult<i64>;
 }
 
 /// Paged repository trait
 #[async_trait]
 pub trait PagedRepository<T, ID = Uuid> {
-    async fn find_page(&self, spec: &QuerySpec) -> crate::DatabaseResult<(Vec<T>, PageMeta)>;
+    async fn find_page(&self, spec: &QuerySpec) -> DatabaseResult<(Vec<T>, PageMeta)>;
 }
 
 /// Soft delete repository trait
 #[async_trait]
 pub trait SoftDeleteRepository<T, ID = Uuid> {
-    async fn soft_delete(&self, id: ID) -> crate::DatabaseResult<bool>;
-    async fn restore(&self, id: ID) -> crate::DatabaseResult<bool>;
-    async fn find_deleted(&self) -> crate::DatabaseResult<Vec<T>>;
+    async fn soft_delete(&self, id: ID) -> DatabaseResult<bool>;
+    async fn restore(&self, id: ID) -> DatabaseResult<bool>;
+    async fn find_deleted(&self) -> DatabaseResult<Vec<T>>;
 }
 
 /// Versioned repository trait for optimistic locking
 #[async_trait]
 pub trait VersionedRepository<T, ID = Uuid> {
-    async fn save_versioned(&self, entity: T, expected_version: i32) -> crate::DatabaseResult<T>;
+    async fn save_versioned(&self, entity: T, expected_version: i32) -> DatabaseResult<T>;
 }
 
 /// Tenant-aware repository trait
 #[async_trait]
 pub trait TenantRepository<T, ID = Uuid> {
-    async fn find_by_tenant(&self, tenant_id: Uuid) -> crate::DatabaseResult<Vec<T>>;
-    async fn find_by_tenant_and_id(&self, tenant_id: Uuid, id: ID) -> crate::DatabaseResult<Option<T>>;
+    async fn find_by_tenant(&self, tenant_id: Uuid) -> DatabaseResult<Vec<T>>;
+    async fn find_by_tenant_and_id(&self, tenant_id: Uuid, id: ID) -> DatabaseResult<Option<T>>;
 }

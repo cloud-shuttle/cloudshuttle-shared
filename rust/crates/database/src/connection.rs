@@ -2,7 +2,8 @@
 
 use sqlx::{PgPool, postgres::PgPoolOptions, Row};
 use std::time::Duration;
-use crate::{DatabaseResult, ConnectionPool, PoolConfig};
+use cloudshuttle_error_handling::database_error::DatabaseResult;
+use crate::{ConnectionPool, PoolConfig, DatabaseTransaction};
 
 /// Database connection manager
 pub struct DatabaseConnection {
@@ -46,7 +47,7 @@ impl DatabaseConnection {
             .await
             .map_err(|e| {
                 tracing::error!("Failed to connect to database: {}", e);
-                e.into()
+                cloudshuttle_error_handling::DatabaseError::from(e)
             })?;
 
         tracing::info!("Connected to database with pool size: {}", config.max_connections);

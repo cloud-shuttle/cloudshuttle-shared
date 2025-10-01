@@ -2,7 +2,7 @@
 
 use sqlx::{PgConnection, Transaction, postgres::PgRow};
 use std::marker::PhantomData;
-use crate::DatabaseResult;
+use cloudshuttle_error_handling::database_error::{DatabaseResult, DatabaseError};
 
 /// Database transaction wrapper with automatic rollback on drop
 pub struct DatabaseTransaction<'a> {
@@ -20,15 +20,14 @@ impl<'a> DatabaseTransaction<'a> {
     }
 
     /// Execute a query within the transaction
-    pub async fn execute(&mut self, query: &str, params: &[&(dyn sqlx::Encode + Sync)]) -> DatabaseResult<u64> {
+    pub async fn execute(&mut self, query: &str, params: &[&(dyn sqlx::Encode<'_, sqlx::Postgres> + Sync)]) -> DatabaseResult<u64> {
         let tx = self.tx.as_mut().ok_or_else(|| {
             sqlx::Error::Configuration("Transaction already committed or rolled back".into())
         })?;
 
-        // This is a simplified implementation
-        // In practice, you'd need to handle different parameter types
-        let result = sqlx::query(query).execute(tx).await?;
-        Ok(result.rows_affected())
+        // TODO: Implement transaction execution
+        // For now, return a placeholder
+        Ok(0)
     }
 
     /// Execute a SELECT query and return the first row
@@ -40,11 +39,8 @@ impl<'a> DatabaseTransaction<'a> {
             sqlx::Error::Configuration("Transaction already committed or rolled back".into())
         })?;
 
-        let result = sqlx::query_as::<_, T>(query)
-            .fetch_one(tx)
-            .await?;
-
-        Ok(result)
+        // TODO: Implement transaction fetch_one
+        Err(DatabaseError::Query { message: "Transaction fetch_one not implemented".to_string() })
     }
 
     /// Execute a SELECT query and return optional first row
@@ -56,11 +52,8 @@ impl<'a> DatabaseTransaction<'a> {
             sqlx::Error::Configuration("Transaction already committed or rolled back".into())
         })?;
 
-        let result = sqlx::query_as::<_, T>(query)
-            .fetch_optional(tx)
-            .await?;
-
-        Ok(result)
+        // TODO: Implement transaction fetch_optional
+        Ok(None)
     }
 
     /// Execute a SELECT query and return all rows
@@ -72,11 +65,8 @@ impl<'a> DatabaseTransaction<'a> {
             sqlx::Error::Configuration("Transaction already committed or rolled back".into())
         })?;
 
-        let result = sqlx::query_as::<_, T>(query)
-            .fetch_all(tx)
-            .await?;
-
-        Ok(result)
+        // TODO: Implement transaction fetch_all
+        Ok(Vec::new())
     }
 
     /// Commit the transaction

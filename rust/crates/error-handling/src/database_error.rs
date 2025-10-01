@@ -1,6 +1,7 @@
 //! Database-specific error handling
 
 use serde::{Deserialize, Serialize};
+use std::io;
 
 /// Database operation errors
 #[derive(Debug, thiserror::Error)]
@@ -201,6 +202,82 @@ impl DatabaseHealth {
     pub fn with_connections(mut self, connections: PoolMetrics) -> Self {
         self.connections = Some(connections);
         self
+    }
+}
+
+#[cfg(feature = "database")]
+impl From<sqlx::Error> for DatabaseError {
+    fn from(error: sqlx::Error) -> Self {
+        match error {
+            sqlx::Error::Configuration(e) => DatabaseError::Connection {
+                message: format!("Configuration error: {}", e),
+            },
+            sqlx::Error::Database(e) => {
+                // Check for specific database constraint violations
+                let message = format!("{}", e);
+                if message.contains("unique constraint") || message.contains("duplicate key") {
+                    DatabaseError::DuplicateKey {
+                        key: "unknown".to_string(),
+                    }
+                } else if message.contains("foreign key constraint")
+                    || message.contains("check constraint")
+                    || message.contains("not null constraint") {
+                    DatabaseError::ConstraintViolation {
+                        constraint: "unknown".to_string(),
+                        message,
+                    }
+                } else {
+                    DatabaseError::Query { message }
+                }
+            }
+            sqlx::Error::Io(e) => DatabaseError::Connection {
+                message: format!("IO error: {}", e),
+            },
+            sqlx::Error::Tls(e) => DatabaseError::Connection {
+                message: format!("TLS error: {}", e),
+            },
+            sqlx::Error::Protocol(e) => DatabaseError::Connection {
+                message: format!("Protocol error: {}", e),
+            },
+            sqlx::Error::RowNotFound => DatabaseError::NotFound {
+                resource: "row".to_string(),
+            },
+            sqlx::Error::TypeNotFound { type_name } => DatabaseError::Query {
+                message: format!("Type not found: {}", type_name),
+            },
+            sqlx::Error::ColumnIndexOutOfBounds { index, len } => DatabaseError::Query {
+                message: format!("Column index {} out of bounds for length {}", index, len),
+            },
+            sqlx::Error::ColumnNotFound(s) => DatabaseError::Query {
+                message: format!("Column not found: {}", s),
+            },
+            sqlx::Error::ColumnDecode { index, source } => DatabaseError::Query {
+                message: format!("Column decode error at index {}: {}", index, source),
+            },
+            sqlx::Error::Decode(e) => DatabaseError::Query {
+                message: format!("Decode error: {}", e),
+            },
+            sqlx::Error::PoolTimedOut => DatabaseError::Timeout {
+                operation: "pool acquire".to_string(),
+            },
+            sqlx::Error::PoolClosed => DatabaseError::PoolExhausted {
+                message: "Pool closed".to_string(),
+            },
+            sqlx::Error::WorkerCrashed => DatabaseError::Connection {
+                message: "Worker crashed".to_string(),
+            },
+            _ => DatabaseError::Query {
+                message: format!("Unknown database error: {}", error),
+            },
+        }
+    }
+}
+
+impl From<io::Error> for DatabaseError {
+    fn from(error: io::Error) -> Self {
+        DatabaseError::Connection {
+            message: format!("IO error: {}", error),
+        }
     }
 }
 

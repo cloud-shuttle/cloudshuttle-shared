@@ -223,6 +223,7 @@ mod tests {
         assert!(!response.timestamp.is_empty());
     }
 
+    #[cfg(feature = "axum")]
     #[tokio::test]
     async fn test_health_checker_creation() {
         let checker = HealthChecker::new();

@@ -236,7 +236,7 @@ mod tests {
 
     #[test]
     fn test_error_with_details() {
-        let error = ApiError::validation_error("Field required")
+        let error = crate::error::errors::validation_error("Field required")
             .with_detail("field", "name")
             .with_request_id("req-123");
 
