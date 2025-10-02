@@ -35,6 +35,6 @@ axum = ["dep:axum", "dep:reqwest"]
 sys-info = ["dep:sys-info"]
 
 [dependencies.axum]
-version = "0.2.0"
+workspace = true
 optional = true
-features = ["macros"]
+# features = ["macros"]  # Removed - axum 0.8 doesn't have macros feature
