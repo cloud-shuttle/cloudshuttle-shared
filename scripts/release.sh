@@ -372,13 +372,18 @@ main() {
         print_warning "Skipping build"
     fi
 
-    # Update versions
+    # Skip TypeScript builds for now (focus on Rust release)
+    print_warning "Skipping TypeScript builds for this release"
+
+    # Update versions (Rust only for this release)
     if [ "$dry_run" = false ]; then
         update_rust_versions "$version"
-        update_typescript_versions "$version"
-        update_root_package_json "$version"
+        # update_typescript_versions "$version"
+        # update_root_package_json "$version"
+        print_warning "Skipping TypeScript version updates"
     else
-        print_status "Would update versions to $version"
+        print_status "Would update Rust versions to $version"
+        print_status "Would skip TypeScript version updates"
     fi
 
     # Create git release
@@ -395,11 +400,11 @@ main() {
         print_status "Would publish Rust crates to crates.io"
     fi
 
-    # Publish TypeScript packages
+    # Skip TypeScript publishing for now (focus on Rust release)
     if [ "$dry_run" = false ]; then
-        publish_typescript_packages
+        print_warning "Skipping TypeScript package publishing"
     else
-        print_status "Would publish TypeScript packages to npm"
+        print_status "Would skip TypeScript package publishing"
     fi
 
     # Push to remote
