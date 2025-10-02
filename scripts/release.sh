@@ -77,7 +77,7 @@ update_rust_versions() {
     RUST_LIBRARIES=(
         "error-handling"
         "database"
-        "auth"
+        # "auth"  # Temporarily disabled due to axum 0.8 compatibility issues
         "observability"
         "config"
         "api"
@@ -86,7 +86,7 @@ update_rust_versions() {
     )
 
     for lib in "${RUST_LIBRARIES[@]}"; do
-        local cargo_file="rust/${lib}/Cargo.toml"
+        local cargo_file="rust/crates/${lib}/Cargo.toml"
         if [ -f "$cargo_file" ]; then
             # Update version
             sed -i.bak "s/^version = \".*\"/version = \"$version\"/" "$cargo_file"
@@ -199,7 +199,7 @@ publish_rust_crates() {
     RUST_LIBRARIES=(
         "error-handling"
         "database"
-        "auth"
+        # "auth"  # Temporarily disabled due to axum 0.8 compatibility issues
         "observability"
         "config"
         "api"
@@ -208,9 +208,9 @@ publish_rust_crates() {
     )
 
     for lib in "${RUST_LIBRARIES[@]}"; do
-        print_status "Publishing rust/${lib}..."
+        print_status "Publishing rust/crates/${lib}..."
 
-        cd "rust/${lib}"
+        cd "rust/crates/${lib}"
 
         # Wait a bit between publishes to avoid rate limiting
         sleep 30
