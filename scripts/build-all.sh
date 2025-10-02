@@ -47,7 +47,7 @@ build_rust() {
     fi
 
     # Check if we're in the right directory
-    if [ ! -f "rust/error-handling/Cargo.toml" ]; then
+    if [ ! -f "rust/crates/error-handling/Cargo.toml" ]; then
         print_error "Please run this script from the repository root directory."
         exit 1
     fi
@@ -65,35 +65,35 @@ build_rust() {
     )
 
     for lib in "${RUST_LIBRARIES[@]}"; do
-        print_status "Building rust/${lib}..."
-        cd "rust/${lib}"
+        print_status "Building rust/crates/${lib}..."
+        cd "rust/crates/${lib}"
 
         # Check Cargo.toml exists
         if [ ! -f "Cargo.toml" ]; then
-            print_error "Cargo.toml not found in rust/${lib}"
-            cd ../..
+            print_error "Cargo.toml not found in rust/crates/${lib}"
+            cd ../../..
             continue
         fi
 
         # Build with all features
         if cargo build --all-features; then
-            print_success "Built rust/${lib}"
+            print_success "Built rust/crates/${lib}"
         else
-            print_error "Failed to build rust/${lib}"
-            cd ../..
+            print_error "Failed to build rust/crates/${lib}"
+            cd ../../..
             exit 1
         fi
 
         # Run clippy if available
         if command_exists cargo-clippy; then
             if cargo clippy --all-targets --all-features -- -D warnings; then
-                print_success "Clippy passed for rust/${lib}"
+                print_success "Clippy passed for rust/crates/${lib}"
             else
-                print_warning "Clippy warnings in rust/${lib}"
+                print_warning "Clippy warnings in rust/crates/${lib}"
             fi
         fi
 
-        cd ../..
+        cd ../../..
     done
 
     print_success "All Rust libraries built successfully"

@@ -47,7 +47,7 @@ test_rust() {
     fi
 
     # Check if we're in the right directory
-    if [ ! -f "rust/error-handling/Cargo.toml" ]; then
+    if [ ! -f "rust/crates/error-handling/Cargo.toml" ]; then
         print_error "Please run this script from the repository root directory."
         exit 1
     fi
@@ -65,33 +65,33 @@ test_rust() {
     )
 
     for lib in "${RUST_LIBRARIES[@]}"; do
-        print_status "Testing rust/${lib}..."
-        cd "rust/${lib}"
+        print_status "Testing rust/crates/${lib}..."
+        cd "rust/crates/${lib}"
 
         # Check Cargo.toml exists
         if [ ! -f "Cargo.toml" ]; then
-            print_error "Cargo.toml not found in rust/${lib}"
-            cd ../..
+            print_error "Cargo.toml not found in rust/crates/${lib}"
+            cd ../../..
             continue
         fi
 
         # Run tests
         if cargo test --all-features --verbose; then
-            print_success "Tests passed for rust/${lib}"
+            print_success "Tests passed for rust/crates/${lib}"
         else
-            print_error "Tests failed for rust/${lib}"
-            cd ../..
+            print_error "Tests failed for rust/crates/${lib}"
+            cd ../../..
             exit 1
         fi
 
         # Run doc tests
         if cargo test --doc --all-features; then
-            print_success "Doc tests passed for rust/${lib}"
+            print_success "Doc tests passed for rust/crates/${lib}"
         else
-            print_warning "Doc tests failed for rust/${lib}"
+            print_warning "Doc tests failed for rust/crates/${lib}"
         fi
 
-        cd ../..
+        cd ../../..
     done
 
     print_success "All Rust library tests completed"

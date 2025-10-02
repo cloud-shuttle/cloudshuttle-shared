@@ -24,6 +24,7 @@
 //!
 //! // Implementing service-specific errors
 //! #[derive(Debug, thiserror::Error)]
+//! #[error("{message}")]
 //! pub struct MyServiceError {
 //!     message: String,
 //! }
