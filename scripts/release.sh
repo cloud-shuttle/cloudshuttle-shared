@@ -158,7 +158,7 @@ run_tests() {
 build_libraries() {
     print_status "Building all libraries..."
 
-    if ! ./scripts/build-all.sh; then
+    if ! ./scripts/build-all.sh --rust-only; then
         print_error "Build failed. Aborting release."
         exit 1
     fi
