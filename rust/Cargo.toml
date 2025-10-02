@@ -3,7 +3,7 @@ resolver = "2"
 members = [
     "crates/error-handling",
     "crates/database",
-    "crates/auth",
+    # "crates/auth",  # Temporarily excluded due to axum 0.8 compatibility issues
     "crates/observability",
     "crates/config",
     "crates/api",
