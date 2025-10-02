@@ -56,3 +56,10 @@ pub use introspection::{TokenIntrospection, TokenIntrospectable, IntrospectionRe
 pub use pkce::{PkceHandler, PkcePair, PkceMethod, PkceAuthorizationRequest, PkceTokenRequest};
 #[cfg(feature = "refresh-tokens")]
 pub use refresh_tokens::{RefreshTokenManager, RefreshTokenConfig, RefreshTokenRequest, RefreshTokenResponse, RefreshTokenRecord};
+
+// Middleware types
+#[cfg(feature = "middleware")]
+pub type MiddlewareFuture = std::pin::Pin<Box<dyn std::future::Future<Output = axum::response::Response> + Send>>;
+
+#[cfg(feature = "middleware")]
+pub type MiddlewareFn = Box<dyn Fn(axum::extract::Request, axum::middleware::Next) -> MiddlewareFuture + Send + Sync>;

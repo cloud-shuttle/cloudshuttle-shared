@@ -149,7 +149,7 @@ mod tests {
         let mut claims = Claims::new("user-123", "tenant-456");
 
         // Set expiration to past
-        claims.exp = (chrono::Utc::now() - Duration::hours(1)).timestamp() as usize;
+        claims.exp = (chrono::Utc::now() - Duration::hours(1)).timestamp() as u64;
 
         let token = service.create_token(&claims).unwrap();
         let result = service.validate_token(&token);

@@ -4,7 +4,7 @@ use jsonwebtoken::{Algorithm, EncodingKey, DecodingKey};
 use crate::types::{AuthResult, AuthError};
 
 /// Supported JWT algorithms
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum JwtAlgorithm {
     HS256,
     HS384,

@@ -44,10 +44,10 @@ pub use transaction::{DatabaseTransaction, TransactionResult};
 pub use pool::{ConnectionPool, PoolConfig};
 
 // Re-export advanced pool types
-pub use pool::advanced_pool::{AdvancedPgPool, AdvancedPoolConfig, PoolMetrics, PoolManager, HealthCheckConfig};
+pub use pool::advanced::{AdvancedPgPool, AdvancedPoolConfig, PoolMetrics, PoolManager, HealthCheckConfig};
 
 // Re-export advanced migration types
-pub use migrations::advanced_migrations::{
+pub use migrations::advanced::{
     AdvancedMigrationRunner, Migration, MigrationStatus, MigrationRecord,
     MigrationResult, MigrationPlan, MigrationBuilder, MigrationStatusSummary
 };

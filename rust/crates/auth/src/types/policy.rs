@@ -315,7 +315,7 @@ pub enum SecurityEventType {
     TokenRevoked,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum SecuritySeverity {
     Low,
     Medium,
@@ -410,6 +410,7 @@ mod tests {
     #[test]
     fn test_mfa_config() {
         let mut config = MfaConfig::default();
+        config.enabled = true;
         config.required_for_roles = vec!["admin".to_string()];
 
         assert!(config.is_required_for_user(&["admin".to_string()]));

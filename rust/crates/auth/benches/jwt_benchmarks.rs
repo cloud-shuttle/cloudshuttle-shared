@@ -7,7 +7,7 @@ use cloudshuttle_auth::{JwtService, Claims};
 use chrono::Duration;
 
 fn bench_jwt_operations(c: &mut Criterion) {
-    let service = JwtService::new(b"benchmark-secret-key-that-is-long-enough-for-performance-testing");
+    let service = JwtService::new(b"benchmark-secret-key-that-is-long-enough-for-performance-testing").unwrap();
     let claims = Claims::new("benchmark-user", "benchmark-tenant");
 
     c.bench_function("jwt_token_creation", |b| {
@@ -25,7 +25,7 @@ fn bench_jwt_operations(c: &mut Criterion) {
 }
 
 fn bench_jwt_with_complex_claims(c: &mut Criterion) {
-    let service = JwtService::new(b"benchmark-secret-key-that-is-long-enough-for-performance-testing");
+    let service = JwtService::new(b"benchmark-secret-key-that-is-long-enough-for-performance-testing").unwrap();
     let mut claims = Claims::new("benchmark-user", "benchmark-tenant");
     claims.roles = vec![
         "admin".to_string(),
@@ -65,7 +65,7 @@ fn bench_jwt_different_key_sizes(c: &mut Criterion) {
     ];
 
     for (i, key) in keys.iter().enumerate() {
-        let service = JwtService::new(key);
+        let service = JwtService::new(key).unwrap();
         let claims = Claims::new("benchmark-user", "benchmark-tenant");
 
         c.bench_function(&format!("jwt_creation_key_size_{}", i), |b| {
@@ -84,16 +84,16 @@ fn bench_jwt_different_key_sizes(c: &mut Criterion) {
 }
 
 fn bench_jwt_concurrent_operations(c: &mut Criterion) {
-    let service = JwtService::new(b"benchmark-secret-key-that-is-long-enough-for-performance-testing");
+    let service = JwtService::new(b"benchmark-secret-key-that-is-long-enough-for-performance-testing").unwrap();
     let claims = Claims::new("benchmark-user", "benchmark-tenant");
 
     c.bench_function("jwt_concurrent_creation", |b| {
         b.iter(|| {
             let handles: Vec<_> = (0..10).map(|_| {
-                let service = service.clone();
-                let claims = claims.clone();
                 std::thread::spawn(move || {
-                    black_box(service.create_token(&claims).unwrap());
+                    let local_service = JwtService::new(b"benchmark-secret-key-that-is-long-enough-for-performance-testing").unwrap();
+                    let local_claims = Claims::new("benchmark-user", "benchmark-tenant");
+                    black_box(local_service.create_token(&local_claims).unwrap());
                 })
             }).collect();
 
@@ -107,10 +107,10 @@ fn bench_jwt_concurrent_operations(c: &mut Criterion) {
     c.bench_function("jwt_concurrent_validation", |b| {
         b.iter(|| {
             let handles: Vec<_> = (0..10).map(|_| {
-                let service = service.clone();
                 let token = token.clone();
                 std::thread::spawn(move || {
-                    black_box(service.validate_token(&token).unwrap());
+                    let local_service = JwtService::new(b"benchmark-secret-key-that-is-long-enough-for-performance-testing").unwrap();
+                    black_box(local_service.validate_token(&token).unwrap());
                 })
             }).collect();
 
@@ -122,7 +122,7 @@ fn bench_jwt_concurrent_operations(c: &mut Criterion) {
 }
 
 fn bench_jwt_expiry_scenarios(c: &mut Criterion) {
-    let service = JwtService::new(b"benchmark-secret-key-that-is-long-enough-for-performance-testing");
+    let service = JwtService::new(b"benchmark-secret-key-that-is-long-enough-for-performance-testing").unwrap();
 
     c.bench_function("jwt_creation_with_custom_expiry", |b| {
         b.iter(|| {
@@ -146,7 +146,7 @@ fn bench_jwt_expiry_scenarios(c: &mut Criterion) {
 }
 
 fn bench_jwt_bulk_operations(c: &mut Criterion) {
-    let service = JwtService::new(b"benchmark-secret-key-that-is-long-enough-for-performance-testing");
+    let service = JwtService::new(b"benchmark-secret-key-that-is-long-enough-for-performance-testing").unwrap();
 
     c.bench_function("jwt_bulk_creation_100", |b| {
         b.iter(|| {

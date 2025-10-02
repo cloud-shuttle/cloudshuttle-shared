@@ -19,7 +19,7 @@ thiserror.workspace = true
 chrono.workspace = true
 uuid.workspace = true
 async-trait.workspace = true
-jsonwebtoken = "9.3"
+jsonwebtoken = { version = "10.0", features = ["rust_crypto"] }
 base64.workspace = true
 ring = "0.17"
 argon2 = { version = "0.5", features = ["std"] }
@@ -29,10 +29,18 @@ hex.workspace = true
 cloudshuttle-observability = { path = "../observability", optional = true }
 
 [dev-dependencies]
-pact_consumer = "0.10"
+pact_consumer = "1.4"
 criterion = { version = "0.5", features = ["html_reports"] }
 futures = "0.3"
-tokio = { version = "1.45", features = ["full"] }
+tokio.workspace = true
+
+[[bench]]
+name = "jwt_benchmarks"
+harness = false
+
+[[bench]]
+name = "auth_benchmarks"
+harness = false
 
 [features]
 default = []

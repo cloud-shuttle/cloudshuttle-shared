@@ -1,6 +1,5 @@
 //! Connection pool management
-
-pub mod advanced_pool;
+pub mod advanced;
 
 use sqlx::{PgPool, postgres::PgPoolOptions, Row};
 use std::time::Duration;

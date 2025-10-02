@@ -31,6 +31,7 @@ impl TokenService {
         validation.validate_exp = true;
         validation.validate_nbf = false; // Not using nbf claims
         validation.leeway = 30; // 30 seconds leeway for clock skew
+        validation.set_audience(&["cloudshuttle-api"]);
 
         Ok(Self {
             encoding_key,
