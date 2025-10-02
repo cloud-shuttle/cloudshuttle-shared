@@ -9,38 +9,56 @@ pub static PROMETHEUS_REGISTRY: Lazy<prometheus::Registry> = Lazy::new(prometheu
 
 /// HTTP request counter
 pub static HTTP_REQUEST_COUNT: Lazy<Counter> = Lazy::new(|| {
-    register_counter!("http_requests_total", "Total number of HTTP requests")
-        .expect("can not create counter http_requests_total")
+    let counter = Counter::new("http_requests_total", "Total number of HTTP requests")
+        .expect("can not create counter http_requests_total");
+    PROMETHEUS_REGISTRY.register(Box::new(counter.clone()))
+        .expect("can not register counter http_requests_total");
+    counter
 });
 
 /// HTTP request duration histogram
 pub static HTTP_REQUEST_DURATION_SECONDS: Lazy<Histogram> = Lazy::new(|| {
-    register_histogram!("http_request_duration_seconds", "HTTP request duration in seconds")
-        .expect("can not create histogram http_request_duration_seconds")
+    let histogram = Histogram::with_opts(prometheus::HistogramOpts::new("http_request_duration_seconds", "HTTP request duration in seconds"))
+        .expect("can not create histogram http_request_duration_seconds");
+    PROMETHEUS_REGISTRY.register(Box::new(histogram.clone()))
+        .expect("can not register histogram http_request_duration_seconds");
+    histogram
 });
 
 /// Active connections gauge
 pub static ACTIVE_CONNECTIONS: Lazy<Gauge> = Lazy::new(|| {
-    register_gauge!("active_connections", "Number of active connections")
-        .expect("can not create gauge active_connections")
+    let gauge = Gauge::new("active_connections", "Number of active connections")
+        .expect("can not create gauge active_connections");
+    PROMETHEUS_REGISTRY.register(Box::new(gauge.clone()))
+        .expect("can not register gauge active_connections");
+    gauge
 });
 
 /// Database connection pool size
 pub static DB_POOL_SIZE: Lazy<Gauge> = Lazy::new(|| {
-    register_gauge!("db_pool_size", "Database connection pool size")
-        .expect("can not create gauge db_pool_size")
+    let gauge = Gauge::new("db_pool_size", "Database connection pool size")
+        .expect("can not create gauge db_pool_size");
+    PROMETHEUS_REGISTRY.register(Box::new(gauge.clone()))
+        .expect("can not register gauge db_pool_size");
+    gauge
 });
 
 /// Database connection pool active connections
 pub static DB_POOL_ACTIVE: Lazy<Gauge> = Lazy::new(|| {
-    register_gauge!("db_pool_active", "Database connection pool active connections")
-        .expect("can not create gauge db_pool_active")
+    let gauge = Gauge::new("db_pool_active", "Database connection pool active connections")
+        .expect("can not create gauge db_pool_active");
+    PROMETHEUS_REGISTRY.register(Box::new(gauge.clone()))
+        .expect("can not register gauge db_pool_active");
+    gauge
 });
 
 /// Error counter by type
 pub static ERROR_COUNT: Lazy<Counter> = Lazy::new(|| {
-    register_counter!("errors_total", "Total number of errors")
-        .expect("can not create counter errors_total")
+    let counter = Counter::new("errors_total", "Total number of errors")
+        .expect("can not create counter errors_total");
+    PROMETHEUS_REGISTRY.register(Box::new(counter.clone()))
+        .expect("can not register counter errors_total");
+    counter
 });
 
 /// Business metrics
@@ -59,8 +77,10 @@ pub static BUSINESS_METRICS: Lazy<HashMap<String, Counter>> = Lazy::new(|| {
     ];
 
     for name in metric_names {
-        if let Ok(counter) = register_counter!(name, &format!("Business metric: {}", name)) {
-            metrics.insert(name.to_string(), counter);
+        if let Ok(counter) = Counter::new(name, &format!("Business metric: {}", name)) {
+            if PROMETHEUS_REGISTRY.register(Box::new(counter.clone())).is_ok() {
+                metrics.insert(name.to_string(), counter);
+            }
         }
     }
 
@@ -148,7 +168,7 @@ impl MetricBuilder {
             // This is a simplified implementation
             opts = opts.variable_labels(self.labels);
         }
-        register_counter!(opts)
+        Counter::with_opts(opts)
     }
 
     pub fn build_gauge(self) -> Result<Gauge, prometheus::Error> {
@@ -156,12 +176,12 @@ impl MetricBuilder {
         if !self.labels.is_empty() {
             opts = opts.variable_labels(self.labels);
         }
-        register_gauge!(opts)
+        Gauge::with_opts(opts)
     }
 
     pub fn build_histogram(self) -> Result<Histogram, prometheus::Error> {
         let opts = prometheus::HistogramOpts::new(self.name, self.help);
-        register_histogram!(opts)
+        Histogram::with_opts(opts)
     }
 }
 
@@ -198,6 +218,8 @@ mod tests {
     #[test]
     fn test_gather_metrics() {
         let registry = MetricsRegistry::new();
+        // Initialize the standard metrics
+        register_metrics();
         let result = registry.gather_metrics();
         assert!(result.is_ok());
         let metrics_output = result.unwrap();

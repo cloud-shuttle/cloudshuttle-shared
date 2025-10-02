@@ -5,7 +5,8 @@
 //! DATABASE_URL=postgresql://user:password@localhost:5432/test_db cargo test --test integration
 
 use cloudshuttle_database::*;
-use cloudshuttle_error_handling::database_error::HealthStatus;
+use cloudshuttle_error_handling::database_error::{DatabaseResult, DatabaseError, HealthStatus};
+use std::time::Duration;
 use std::env;
 
 #[derive(Debug, sqlx::FromRow)]
@@ -24,12 +25,12 @@ async fn setup_test_database() -> DatabaseResult<DatabaseConnection> {
         url: get_database_url(),
         max_connections: 5,
         min_connections: 1,
-        acquire_timeout_seconds: 30,
-        idle_timeout_seconds: Some(300),
-        max_lifetime_seconds: Some(3600),
+        acquire_timeout: Duration::from_secs(30),
+        idle_timeout: Duration::from_secs(300),
+        max_lifetime: Duration::from_secs(3600),
     };
 
-    DatabaseConnection::new(config).await
+    DatabaseConnection::with_config(config).await
 }
 
 #[tokio::test]
