@@ -6,6 +6,20 @@
 
 The `cloudshuttle-shared` repository contains shared libraries and utilities used across all CloudShuttle services. This repository eliminates code duplication, ensures consistency, and provides a centralized location for common functionality.
 
+## 🚀 Quick Start
+
+**New to CloudShuttle shared libraries?** Start here:
+
+📖 **[USAGE_GUIDE.md](USAGE_GUIDE.md)** - Complete guide for using CloudShuttle libraries with Git dependencies and tags
+
+```toml
+[dependencies]
+cloudshuttle-api = { git = "https://github.com/cloud-shuttle/cloudshuttle-shared.git", tag = "v0.4.0" }
+cloudshuttle-auth = { git = "https://github.com/cloud-shuttle/cloudshuttle-shared.git", tag = "v0.4.0" }
+```
+
+See the **[USAGE_GUIDE.md](USAGE_GUIDE.md)** for detailed setup instructions, examples, and troubleshooting.
+
 ## Repository Structure
 
 ```
@@ -370,6 +384,10 @@ impl From<ApiError> for MyServiceError {
 ## Support
 
 ### Documentation
+- **[USAGE_GUIDE.md](USAGE_GUIDE.md)** - How to use CloudShuttle libraries (Git dependencies, tags, setup)
+- **[CRATES_OVERVIEW.md](CRATES_OVERVIEW.md)** - Detailed crate descriptions and examples
+- **[docs/consumption/README.md](docs/consumption/README.md)** - Advanced consumption guide
+- [docs/consumption/QUICK_REFERENCE.md](docs/consumption/QUICK_REFERENCE.md) - Quick reference guide
 - [Rust Libraries Guide](docs/rust-libraries.md)
 - [TypeScript Libraries Guide](docs/typescript-libraries.md)
 - [Versioning Strategy](docs/versioning.md)
