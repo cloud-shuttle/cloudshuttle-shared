@@ -18,3 +18,11 @@ http.workspace = true
 uuid.workspace = true
 chrono.workspace = true
 thiserror.workspace = true
+cloudshuttle-auth = { path = "../auth" }
+utoipa.workspace = true
+utoipa-axum.workspace = true
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt", "macros", "test-util"] }
+tower = "0.5"
+http-body-util = "0.1"

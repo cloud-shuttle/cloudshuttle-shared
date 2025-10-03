@@ -69,7 +69,7 @@ where
 {
     type Rejection = Response;
 
-    async fn from_request(req: Request, _state: &S) -> Result<Self, Self::Rejection> {
+    async fn from_request(req: Request, _state: &mut S) -> Result<Self, Self::Rejection> {
         match req.extensions().get::<Claims>() {
             Some(claims) => Ok(AuthenticatedUser(claims.clone())),
             None => Err(AuthError::MissingToken.into_response()),
@@ -89,7 +89,7 @@ where
 {
     type Rejection = Response;
 
-    async fn from_request(req: Request, _state: &S) -> Result<Self, Self::Rejection> {
+    async fn from_request(req: Request, _state: &mut S) -> Result<Self, Self::Rejection> {
         let claims = req.extensions().get::<Claims>().cloned();
         Ok(OptionalUser(claims))
     }

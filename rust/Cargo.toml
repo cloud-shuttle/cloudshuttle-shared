@@ -3,7 +3,7 @@ resolver = "2"
 members = [
     "crates/error-handling",
     "crates/database",
-    # "crates/auth",  # Temporarily excluded due to axum 0.8 compatibility issues
+    "crates/auth",
     "crates/observability",
     "crates/config",
     "crates/api",
@@ -47,5 +47,7 @@ ring = "0.17"
 axum = "0.8"
 sys-info = "0.9"
 unicode-normalization = "0.1"
+utoipa = { version = "4.2", features = ["axum_extras", "chrono"] }
+utoipa-axum = { version = "0.1" }
 
 
