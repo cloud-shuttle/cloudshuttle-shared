@@ -47,7 +47,5 @@ ring = "0.17"
 axum = "0.8"
 sys-info = "0.9"
 unicode-normalization = "0.1"
-utoipa = { version = "4.2", features = ["axum_extras", "chrono"] }
-utoipa-axum = { version = "0.1" }
 
 

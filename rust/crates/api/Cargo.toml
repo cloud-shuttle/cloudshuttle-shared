@@ -19,8 +19,8 @@ uuid.workspace = true
 chrono.workspace = true
 thiserror.workspace = true
 cloudshuttle-auth = { path = "../auth" }
-utoipa.workspace = true
-utoipa-axum.workspace = true
+utoipa = { version = "4.2", features = ["axum_extras", "chrono"] }
+utoipa-axum = { version = "0.1" }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["rt", "macros", "test-util"] }
